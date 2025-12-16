@@ -94,6 +94,13 @@ services:
       - key: NODE_VERSION
         value: 18
 
+  # Redis Service
+  - type: redis
+    name: yieldera-viz-redis
+    region: oregon
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+
 # Database
 databases:
   - name: yieldera-viz-db
@@ -101,10 +108,3 @@ databases:
     user: yieldera_user
     region: oregon
     plan: starter
-
-# Redis
-  - type: redis
-    name: yieldera-viz-redis
-    region: oregon
-    plan: starter
-    maxmemoryPolicy: allkeys-lru
