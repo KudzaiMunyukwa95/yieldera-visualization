@@ -301,15 +301,17 @@ class VisualizationProcessor:
         try:
             # Set up professional stylings
             plt.style.use('default')
-            # Upgrade 1: Larger canvas and higher DPI
-            fig = plt.figure(figsize=(16, 12), dpi=400, facecolor='white')
+            # Optimization: Use smaller canvas and lower DPI to prevent OOM on free tier
+            # Previous: (16, 12) @ 400 DPI = ~30MP image (Too big for 512MB RAM)
+            # New: (10, 8) @ 150 DPI = ~1.2MP image (Safe)
+            fig = plt.figure(figsize=(10, 8), dpi=150, facecolor='white')
             
             # Create map projection
             proj = ccrs.PlateCarree()
             ax = fig.add_subplot(111, projection=proj)
             
             # Adjust margins for professional look
-            plt.subplots_adjust(left=0.05, right=0.95, top=0.92, bottom=0.08)
+            plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10)
             
             # Set map extent
             ax.set_extent(extent, crs=ccrs.PlateCarree())
@@ -343,7 +345,7 @@ class VisualizationProcessor:
             buffer = io.BytesIO()
             plt.savefig(buffer, 
                        format='png',
-                       dpi=400, # Upgrade: Print quality DPI
+                       dpi=150, # Optimization: Safe DPI
                        bbox_inches='tight',
                        facecolor='white',
                        edgecolor='none')
