@@ -137,11 +137,20 @@ async def generate_visualization(
             'visualization_config': request.visualization_config or {}
         }
         
-        # Start Celery task (will run synchronously if configured as eager)
-        task = process_visualization_job.delay(job_id, job_data)
+        # Database commit to ensure job exists before background task starts
+        db.commit()
         
-        job.celery_task_id = task.id
-        job.message = 'Job queued for processing'
+        # Dispatch job
+        if not settings.REDIS_URL or settings.REDIS_URL.strip() == "":
+            # No Redis: Run in background task (non-blocking) using eager execution
+            # We use a lambda to call .delay() which will run synchronously in the background thread
+            background_tasks.add_task(process_visualization_job.delay, job_id, job_data)
+            job.message = 'Job processing started (Background)'
+        else:
+            # Redis available: Dispatch to Celery worker
+            task = process_visualization_job.delay(job_id, job_data)
+            job.celery_task_id = task.id
+            job.message = 'Job queued for Celery'
 
         db.commit()
         
