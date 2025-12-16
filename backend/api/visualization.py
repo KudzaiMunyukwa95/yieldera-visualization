@@ -33,11 +33,11 @@ class VisualizationRequest(BaseModel):
     geometry: Optional[Dict[str, Any]] = Field(None, description="GeoJSON geometry")
     region_id: Optional[str] = Field(None, description="Predefined region ID")
     region_type: Optional[str] = None
-    start_date: str = Field(..., regex=r'^\d{4}-\d{2}-\d{2}$')
-    end_date: str = Field(..., regex=r'^\d{4}-\d{2}-\d{2}$')
+    start_date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
+    end_date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     baseline_type: str = Field(default='same-period')
     baseline_config: Optional[Dict[str, Any]] = None
-    analysis_type: str = Field(default='anomaly', regex=r'^(anomaly|absolute|percentage|trend|risk)$')
+    analysis_type: str = Field(default='anomaly', pattern=r'^(anomaly|absolute|percentage|trend|risk)$')
     visualization_config: Optional[Dict[str, Any]] = None
 
 class JobResponse(BaseModel):
@@ -57,10 +57,10 @@ class JobStatusResponse(BaseModel):
 
 class ExportRequest(BaseModel):
     job_id: str = Field(..., description="Job ID to export")
-    format: str = Field(default='png', regex=r'^(png|pdf|svg|geotiff)$')
+    format: str = Field(default='png', pattern=r'^(png|pdf|svg|geotiff)$')
     resolution: int = Field(default=300, ge=150, le=600)
     include_legend: bool = Field(default=True)
-    paper_size: str = Field(default='A4', regex=r'^(A4|A3|Letter|Legal)$')
+    paper_size: str = Field(default='A4', pattern=r'^(A4|A3|Letter|Legal)$')
 
 # =====================================
 # JOB MANAGEMENT ENDPOINTS
