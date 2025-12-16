@@ -15,8 +15,8 @@ from .config import settings
 Base = declarative_base()
 
 # Create engine with Render PostgreSQL configuration
+# Create engine with Render PostgreSQL configuration
 engine = create_engine(
-    settings.DATABASE_URL,
     **settings.database_config
 )
 
