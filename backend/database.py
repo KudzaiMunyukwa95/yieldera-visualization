@@ -2,7 +2,7 @@
 Database connection setup for PostgreSQL on Render
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from .config import settings
@@ -35,7 +35,7 @@ def test_connection():
     """Test database connection"""
     try:
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
         logging.error(f"Database connection test failed: {e}")

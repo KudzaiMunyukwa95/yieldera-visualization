@@ -3,7 +3,7 @@
  * Handles predefined region selection and analysis generation
  */
 
-const VisualizationModule = (function() {
+const VisualizationModule = (function () {
     // State
     const state = {
         regions: [],
@@ -27,7 +27,8 @@ const VisualizationModule = (function() {
     };
 
     // API Configuration
-    const API_BASE = '/api/v1/visualization';
+    // API Configuration
+    const API_BASE = `${CONFIG.API_BASE_URL}/api/v1/visualization`;
 
     // Initialize Module
     function init() {
@@ -35,6 +36,14 @@ const VisualizationModule = (function() {
         cacheDOM();
         bindEvents();
         fetchRegions();
+
+        // Hide initial loading overlay since main.js is not present
+        if (window.Utils && window.Utils.hideLoadingOverlay) {
+            setTimeout(() => window.Utils.hideLoadingOverlay(), 500);
+        } else {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
     }
 
     function cacheDOM() {
@@ -44,10 +53,10 @@ const VisualizationModule = (function() {
         elements.regionCategory = document.getElementById('regionCategory');
         elements.specificRegionGroup = document.getElementById('specificRegionGroup');
         elements.specificRegion = document.getElementById('specificRegion');
-        
+
         elements.baselinePeriod = document.getElementById('baselinePeriod');
         elements.customBaselineGroup = document.getElementById('customBaselineGroup');
-        
+
         elements.generateBtn = document.getElementById('generateVisualization');
         elements.resultsPanel = document.getElementById('resultsPanel');
         elements.progressPanel = document.getElementById('progressPanel');
@@ -90,14 +99,14 @@ const VisualizationModule = (function() {
     function handleCategoryChange(category) {
         state.selectedCategory = category;
         elements.specificRegion.innerHTML = '<option value="">Select Specific Region</option>';
-        
+
         if (!category) {
             elements.specificRegionGroup.style.display = 'none';
             return;
         }
 
         const filteredRegions = state.regions.filter(r => r.category === category);
-        
+
         if (filteredRegions.length > 0) {
             filteredRegions.forEach(region => {
                 const option = document.createElement('option');
@@ -120,14 +129,14 @@ const VisualizationModule = (function() {
         const analysisType = document.getElementById('analysisType').value;
         const regionName = elements.specificRegion.options[elements.specificRegion.selectedIndex]?.text || "Selected Region";
 
-        if (!regionId && category !== 'country') { 
+        if (!regionId && category !== 'country') {
             // Note: 'country' often implies the single country option if not filtered, but here country is a category containing 'Zimbabwe'
             // logic adjustment: if category has children, must select child.
         }
-        
+
         if (!regionId) {
-             alert('Please select a specific region.');
-             return;
+            alert('Please select a specific region.');
+            return;
         }
 
         if (!start || !end) {
@@ -145,12 +154,12 @@ const VisualizationModule = (function() {
             analysis_type: analysisType,
             baseline_type: elements.baselinePeriod.value
         };
-        
+
         if (payload.baseline_type === 'custom') {
-             payload.baseline_config = {
-                 start_date: document.getElementById('baselineStart').value,
-                 end_date: document.getElementById('baselineEnd').value
-             };
+            payload.baseline_config = {
+                start_date: document.getElementById('baselineStart').value,
+                end_date: document.getElementById('baselineEnd').value
+            };
         }
 
         // Start Job
@@ -255,23 +264,23 @@ const VisualizationModule = (function() {
     // Export Helper (Public)
     function exportMap(format) {
         if (!state.jobId) return;
-        
+
         // Use a hidden form or fetch blob to download
         fetch(`${API_BASE}/export`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ job_id: state.jobId, format: format })
         })
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `analysis_${state.jobId}.${format}`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        });
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analysis_${state.jobId}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            });
     }
 
     // UI Helpers
@@ -286,12 +295,12 @@ const VisualizationModule = (function() {
             elements.progressPanel.querySelector('.progress-message').textContent = message;
         }
     }
-    
+
     function updateProgress(percent, message) {
         const bar = elements.progressPanel.querySelector('.progress-bar-fill');
         const text = elements.progressPanel.querySelector('.progress-message');
-        if(bar) bar.style.width = `${percent}%`;
-        if(text) text.textContent = `${percent}% - ${message}`;
+        if (bar) bar.style.width = `${percent}%`;
+        if (text) text.textContent = `${percent}% - ${message}`;
     }
 
     function showError(msg) {

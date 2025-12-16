@@ -137,11 +137,12 @@ async def generate_visualization(
             'visualization_config': request.visualization_config or {}
         }
         
-        # Start Celery task
+        # Start Celery task (will run synchronously if configured as eager)
         task = process_visualization_job.delay(job_id, job_data)
         
-        # Update job with Celery task ID
         job.celery_task_id = task.id
+        job.message = 'Job queued for processing'
+
         db.commit()
         
         return JobResponse(

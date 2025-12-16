@@ -5,9 +5,9 @@
 
 const CONFIG = {
   // API Configuration
-  GEE_API_TOKEN: 'e5ab51a6982394b7ed747afdac005a1c851d128fb060898b7b7134789b25f518',
-  GEE_API_URL: '/api/gee_ndvi',
-  REPORT_API_URL: '/api/advanced-report',
+  // API Configuration
+  REPORT_API_URL: 'https://yieldera-viz-api.onrender.com/api/advanced-report',
+  API_BASE_URL: 'https://yieldera-viz-api.onrender.com',
 
   // Map Configuration
   MAP: {

@@ -262,10 +262,10 @@
 
       <!-- Visualization Module Container -->
       <div
-        class="visualization-module-container max-w-5xl mx-auto w-full bg-white dark:bg-secondary rounded-xl shadow-lg overflow-hidden">
+        class="visualization-module-container w-full h-full bg-white dark:bg-secondary rounded-xl shadow-lg overflow-hidden flex flex-col">
 
         <!-- Header -->
-        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-secondary text-white">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-secondary text-white flex-shrink-0">
           <div class="flex items-center">
             <div class="p-3 bg-white/10 rounded-lg mr-4">
               <i class="fas fa-satellite text-2xl text-primary"></i>
@@ -277,11 +277,11 @@
           </div>
         </div>
 
-        <div class="p-6">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="p-6 flex-1 overflow-hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full">
 
             <!-- Controls Column -->
-            <div class="viz-controls lg:col-span-1 space-y-6">
+            <div class="viz-controls lg:col-span-1 space-y-6 overflow-y-auto pr-2">
 
               <!-- Region Selection -->
               <div class="control-group">
@@ -373,8 +373,8 @@
             </div>
 
             <!-- Results Column -->
-            <div class="results-column lg:col-span-2">
-              <div id="resultsPanel" style="display:none;">
+            <div class="results-column lg:col-span-3 h-full flex flex-col">
+              <div id="resultsPanel" style="display:none;" class="flex-1">
                 <!-- Results injected by JS -->
               </div>
 
@@ -394,175 +394,6 @@
 
     </main>
 
-    <!-- Right Panel -->
-    <aside id="panel"
-      class="panel bg-white dark:bg-dark-bg border-l border-gray-200 dark:border-gray-800 w-96 flex-shrink-0 md:relative fixed inset-y-0 right-0 z-40 md:z-10 h-full overflow-y-auto md:transform-none dark:text-white">
-      <!-- Panel Header -->
-      <div class="p-4 border-b border-gray-200 dark:border-gray-800">
-        <h2 class="text-lg font-semibold text-secondary dark:text-white">Weather & Index Data</h2>
-        <div id="fieldInfo" class="mt-2">
-          <div id="fieldName" class="text-base font-medium">Select a field</div>
-          <div class="flex items-center mt-1 text-sm text-gray-600 dark:text-gray-300">
-            <div class="flex items-center mr-4">
-              <i class="fas fa-ruler-combined mr-1"></i>
-              <span id="fieldArea">-- ha</span>
-            </div>
-            <div class="flex items-center">
-              <i class="fas fa-user mr-1"></i>
-              <span id="fieldOwner">--</span>
-            </div>
-          </div>
-          <div class="flex items-center mt-1 text-sm text-gray-600 dark:text-gray-300">
-            <div class="flex items-center mr-4">
-              <i class="fas fa-building mr-1"></i>
-              <span id="fieldInsurer">--</span>
-            </div>
-            <div class="flex items-center">
-              <i class="fas fa-seedling mr-1"></i>
-              <span id="fieldCrop">--</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel Tabs -->
-      <div class="flex border-b border-gray-200 dark:border-gray-800">
-        <button
-          class="flex-1 py-3 px-2 text-center text-secondary dark:text-white font-medium border-b-2 border-primary"
-          data-tab="current">Current</button>
-        <button
-          class="flex-1 py-3 px-2 text-center text-gray-600 dark:text-gray-300 font-medium border-b-2 border-transparent"
-          data-tab="forecast">Forecast</button>
-        <button
-          class="flex-1 py-3 px-2 text-center text-gray-600 dark:text-gray-300 font-medium border-b-2 border-transparent"
-          data-tab="historical">Historical</button>
-        <button
-          class="flex-1 py-3 px-2 text-center text-gray-600 dark:text-gray-300 font-medium border-b-2 border-transparent"
-          data-tab="indices">Indices</button>
-      </div>
-
-      <!-- Current Weather Tab -->
-      <div id="currentTab" class="p-4">
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <div class="flex justify-between items-center mb-3">
-            <div id="currentDate" class="font-medium">Select a field</div>
-            <div id="weatherIcon" class="text-2xl text-primary"><i class="fas fa-cloud-sun"></i></div>
-          </div>
-          <div id="currentWeather" class="grid grid-cols-2 gap-4">
-            <div class="loading-placeholder">
-              <div class="text-xs text-gray-500 dark:text-gray-400">Select a field</div>
-              <div class="text-base mt-1">--</div>
-            </div>
-          </div>
-        </div>
-
-        <div id="weatherDataContainer" class="mb-4">
-          <div class="text-center text-gray-500 dark:text-gray-400 py-4">Select a field to view weather data</div>
-        </div>
-
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <h3 class="font-medium mb-3">Temperature Trend</h3>
-          <div class="h-48"><canvas id="tempChart"></canvas></div>
-        </div>
-
-        <div class="space-y-2">
-          <button id="generateWeatherReport"
-            class="w-full bg-primary text-secondary font-medium py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-file-pdf mr-2"></i>Generate PDF Report
-          </button>
-          <button id="downloadWeatherData"
-            class="w-full bg-white dark:bg-secondary border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white font-medium py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-download mr-2"></i>Download Data (CSV)
-          </button>
-        </div>
-      </div>
-
-      <!-- Forecast Tab -->
-      <div id="forecastTab" class="p-4 hidden">
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <h3 class="font-medium mb-3">7-Day Weather Forecast</h3>
-          <div id="forecastData" class="grid grid-cols-1 gap-4">
-            <div class="text-center text-gray-500 dark:text-gray-400 py-4">Select a field to view forecast data</div>
-          </div>
-        </div>
-        <div class="space-y-2">
-          <button id="generateForecastReport"
-            class="w-full bg-primary text-secondary font-medium py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-file-pdf mr-2"></i>Generate Forecast Report
-          </button>
-          <button id="refreshForecastData"
-            class="w-full bg-white dark:bg-secondary border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white font-medium py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-sync-alt mr-2"></i>Refresh Forecast
-          </button>
-        </div>
-      </div>
-
-      <!-- Historical Tab -->
-      <div id="historicalTab" class="p-4 hidden">
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <h3 id="historicalDateRange" class="font-medium mb-3">Select a date range</h3>
-          <div id="historicalSummary" class="grid grid-cols-2 gap-4"></div>
-        </div>
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <h3 class="font-medium mb-3">Temperature & Rainfall</h3>
-          <div class="h-48"><canvas id="historicalChart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Indices Tab -->
-      <div id="indicesTab" class="p-4 hidden">
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <h3 id="indexDateRange" class="font-medium mb-3">Select a date range</h3>
-          <div class="mb-4">
-            <div class="flex items-center">
-              <div class="text-xs text-gray-500 dark:text-gray-400" id="indexValueLabel">Index imagery for date:</div>
-              <div id="cloudCoverBadge" class="hidden cloud-badge">
-                <i class="fas fa-cloud mr-1"></i>
-                <span id="cloudCoverValue">--</span>%
-              </div>
-            </div>
-            <div id="currentIndexValue" class="text-2xl font-bold mt-1">--</div>
-            <div id="indexCaptureDate" class="text-xs text-gray-500 dark:text-gray-400 mt-1">Image captured: --</div>
-          </div>
-          <div class="mb-4">
-            <div id="dynamicIndexScale" class="dynamic-scale mb-2"></div>
-            <div class="flex justify-between text-xs">
-              <span id="indexRangeMin">0.0</span>
-              <span id="indexRangeMax">1.0</span>
-            </div>
-          </div>
-          <div id="indexStats" class="grid grid-cols-2 gap-2 mb-4 text-sm">
-            <div><span class="text-xs text-gray-500 dark:text-gray-400">Min Value:</span><span id="minIndexValue"
-                class="ml-1">--</span></div>
-            <div><span class="text-xs text-gray-500 dark:text-gray-400">Max Value:</span><span id="maxIndexValue"
-                class="ml-1">--</span></div>
-            <div><span class="text-xs text-gray-500 dark:text-gray-400">Cloud Cover:</span><span id="cloudCoverText"
-                class="ml-1">--</span></div>
-            <div><span class="text-xs text-gray-500 dark:text-gray-400">Image Quality:</span><span id="imageQuality"
-                class="ml-1">--</span></div>
-            <div><span class="text-xs text-gray-500 dark:text-gray-400">Images Used:</span><span id="imageCount"
-                class="ml-1">--</span></div>
-          </div>
-          <div id="indexDescription" class="text-sm text-gray-600 dark:text-gray-300 mt-2">
-            Select an index to view detailed information about vegetation health and analysis.
-          </div>
-        </div>
-        <div class="bg-gray-50 dark:bg-secondary-light rounded-lg p-4 mb-4">
-          <h3 class="font-medium mb-3">Index History</h3>
-          <div class="h-48"><canvas id="indexChart"></canvas></div>
-        </div>
-        <div class="space-y-2">
-          <button id="generateIndexReport"
-            class="w-full bg-primary text-secondary font-medium py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-file-pdf mr-2"></i>Generate Index PDF Report
-          </button>
-          <button id="refreshIndexData"
-            class="w-full bg-white dark:bg-secondary border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white font-medium py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-sync-alt mr-2"></i>Refresh Index Data
-          </button>
-        </div>
-      </div>
-    </aside>
   </div>
 
   <!-- Notification System -->
@@ -580,11 +411,7 @@
   <script src="js/notifications.js"></script>
   <script src="js/mobile-detect.js"></script>
   <script src="js/map-manager.js"></script>
-  <script src="js/field-manager.js"></script>
-  <script src="js/weather-manager.js"></script>
-  <script src="js/index-manager.js"></script>
-  <script src="js/ui-manager.js"></script>
-  <script src="js/report-generator.js"></script>
+  <!-- field-manager.js and others removed as not needed for this view -->
 
   <script src="js/visualization-module.js"></script>
   <script src="js/navigation-highlight.js"></script>

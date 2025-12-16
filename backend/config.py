@@ -34,8 +34,21 @@ class Settings:
     AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
     
     # Celery Configuration
-    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", os.getenv("REDIS_URL", ""))
-    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", os.getenv("REDIS_URL", ""))
+    # Fallback to memory broker if Redis is unavailable
+    _redis_url = os.getenv("REDIS_URL", "")
+    _broker_url = os.getenv("CELERY_BROKER_URL", "")
+    
+    # If explicit broker not set, and redis not set, use memory
+    if not _broker_url:
+        if _redis_url:
+            CELERY_BROKER_URL: str = _broker_url or _redis_url
+            CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", _redis_url)
+        else:
+            CELERY_BROKER_URL: str = "memory://"
+            CELERY_RESULT_BACKEND: str = "rpc://" 
+    else:
+         CELERY_BROKER_URL: str = _broker_url
+         CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", _broker_url)
     
     # Performance Settings
     MAX_WORKERS: int = int(os.getenv("MAX_WORKERS", "4"))
@@ -116,7 +129,7 @@ class Settings:
     @property
     def celery_config(self) -> dict:
         """Get Celery configuration"""
-        return {
+        config = {
             "broker_url": self.CELERY_BROKER_URL,
             "result_backend": self.CELERY_RESULT_BACKEND,
             "task_serializer": "json",
@@ -133,6 +146,15 @@ class Settings:
             "task_compression": "gzip",
             "result_compression": "gzip",
         }
+        
+        # If Redis is not configured, run tasks synchronously (eager mode)
+        if not self.REDIS_URL:
+            config.update({
+                "task_always_eager": True,
+                "task_eager_propagates": True,
+            })
+            
+        return config
     
     @property
     def gee_config(self) -> Optional[dict]:

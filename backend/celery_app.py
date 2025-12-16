@@ -11,15 +11,42 @@ from datetime import datetime, timedelta
 from .config import settings
 
 # Create Celery instance
+# Configure broker and backend with explicit fallbacks
+broker_url = settings.CELERY_BROKER_URL
+result_backend = settings.CELERY_RESULT_BACKEND
+
+# Hard fallback if configuration is missing
+if not broker_url or broker_url.strip() == "":
+    logging.warning("⚠️ CELERY_BROKER_URL is empty! Forcing 'memory://' fallback.")
+    broker_url = "memory://"
+    result_backend = "rpc://"
+
+logging.info(f"🔧 Celery Config - Broker: {broker_url}, Backend: {result_backend}")
+
+# Create Celery instance
 celery_app = Celery(
     'yieldera_visualization',
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND,
+    broker=broker_url,
+    backend=result_backend,
     include=['backend.tasks']
 )
 
 # Configure Celery
-celery_app.conf.update(**settings.celery_config)
+app_config = settings.celery_config.copy()
+app_config.update({
+    "broker_url": broker_url,
+    "result_backend": result_backend
+})
+
+# Force eager mode if using memory broker
+if broker_url == "memory://":
+    logging.info("⚡ Forcing Celery ALWAYS_EAGER mode due to memory broker.")
+    app_config.update({
+        "task_always_eager": True,
+        "task_eager_propagates": True
+    })
+
+celery_app.conf.update(**app_config)
 
 # =====================================
 # CELERY TASKS
@@ -173,8 +200,11 @@ def health_check():
         db_healthy = test_connection()
         
         # Test Redis
-        r = redis.from_url(settings.REDIS_URL)
-        redis_healthy = r.ping()
+        if settings.REDIS_URL:
+            r = redis.from_url(settings.REDIS_URL)
+            redis_healthy = r.ping()
+        else:
+            redis_healthy = False  # Not configured
         
         # Test Earth Engine
         try:
