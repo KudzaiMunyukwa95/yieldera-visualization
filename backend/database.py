@@ -9,8 +9,8 @@ from .config import settings
 import logging
 
 # Create the SQLAlchemy engine
+# Create the SQLAlchemy engine
 engine = create_engine(
-    settings.DATABASE_URL,
     **settings.database_config
 )
 
