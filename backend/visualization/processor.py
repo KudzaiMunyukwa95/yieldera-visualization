@@ -333,7 +333,7 @@ class VisualizationProcessor:
             self.add_title_block(fig, region_name, start_date, end_date, analysis_type)
             self.add_legend(fig, cmap, norm, analysis_type)
             self.add_statistics_box(fig, statistics, analysis_type) # Upgrade: New stats box
-            self.add_inset_map(fig, extent) # Upgrade: Inset map
+            # self.add_inset_map(fig, extent) # Disabled for performance optimization on free tier
             
             self.add_north_arrow(ax, extent)
             self.add_scale_bar(ax, extent)
@@ -552,20 +552,18 @@ class VisualizationProcessor:
 
     def add_base_features(self, ax):
         """Add base map features with optimized resolution"""
-        # Use 50m resolution for faster processing and smaller downloads
-        land_50m = cfeature.NaturalEarthFeature('physical', 'land', '50m',
+        # Use 110m resolution (coarse) for fastest processing on free tier
+        land_110m = cfeature.NaturalEarthFeature('physical', 'land', '110m',
                                               edgecolor='none', facecolor='#F5F5F5')
-        ocean_50m = cfeature.NaturalEarthFeature('physical', 'ocean', '50m',
+        ocean_110m = cfeature.NaturalEarthFeature('physical', 'ocean', '110m',
                                                edgecolor='none', facecolor='#E0F6FF')
-        borders_50m = cfeature.NaturalEarthFeature('cultural', 'admin_0_countries', '50m',
+        borders_110m = cfeature.NaturalEarthFeature('cultural', 'admin_0_countries', '110m',
                                                  edgecolor='#444444', facecolor='none', linewidth=0.5)
-        coastline_50m = cfeature.NaturalEarthFeature('physical', 'coastline', '50m',
-                                                   edgecolor='#444444', facecolor='none', linewidth=1)
         
-        ax.add_feature(land_50m)
-        ax.add_feature(ocean_50m)
-        ax.add_feature(borders_50m)
-        ax.add_feature(coastline_50m)
+        ax.add_feature(land_110m)
+        ax.add_feature(ocean_110m)
+        ax.add_feature(borders_110m)
+        # Coastline 110m is often essentially the same as borders for land/ocean
         
         # Add gridlines
         gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', 
