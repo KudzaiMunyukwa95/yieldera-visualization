@@ -551,11 +551,21 @@ class VisualizationProcessor:
             self.logger.warning(f"Could not add inset map: {e}")
 
     def add_base_features(self, ax):
-        """Add base map features"""
-        ax.add_feature(cfeature.LAND, facecolor='#F5F5F5')
-        ax.add_feature(cfeature.OCEAN, facecolor='#E0F6FF')
-        ax.add_feature(cfeature.BORDERS, linewidth=0.5, color='#444444')
-        ax.add_feature(cfeature.COASTLINE, linewidth=1, color='#444444')
+        """Add base map features with optimized resolution"""
+        # Use 50m resolution for faster processing and smaller downloads
+        land_50m = cfeature.NaturalEarthFeature('physical', 'land', '50m',
+                                              edgecolor='none', facecolor='#F5F5F5')
+        ocean_50m = cfeature.NaturalEarthFeature('physical', 'ocean', '50m',
+                                               edgecolor='none', facecolor='#E0F6FF')
+        borders_50m = cfeature.NaturalEarthFeature('cultural', 'admin_0_countries', '50m',
+                                                 edgecolor='#444444', facecolor='none', linewidth=0.5)
+        coastline_50m = cfeature.NaturalEarthFeature('physical', 'coastline', '50m',
+                                                   edgecolor='#444444', facecolor='none', linewidth=1)
+        
+        ax.add_feature(land_50m)
+        ax.add_feature(ocean_50m)
+        ax.add_feature(borders_50m)
+        ax.add_feature(coastline_50m)
         
         # Add gridlines
         gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', 
