@@ -7,7 +7,7 @@ services:
     name: yieldera-viz-api
     env: python
     region: oregon
-    plan: starter
+    plan: free
     buildCommand: "pip install -r backend/requirements.txt"
     startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /api/health
@@ -52,7 +52,7 @@ services:
     name: yieldera-viz-worker
     env: python
     region: oregon
-    plan: starter
+    plan: free
     buildCommand: "pip install -r backend/requirements.txt"
     startCommand: "celery -A backend.celery_app worker --loglevel=info --concurrency=1"
     envVars:
@@ -82,7 +82,7 @@ services:
   - type: web
     name: yieldera-viz-frontend
     env: static
-    plan: starter
+    plan: free
     buildCommand: "" # No build command needed for static HTML
     staticPublishPath: dash
     routes:
@@ -97,7 +97,7 @@ services:
   - type: redis
     name: yieldera-viz-redis
     region: oregon
-    plan: starter
+    plan: free
     maxmemoryPolicy: allkeys-lru
     ipAllowList: [] # Internal access only
 
@@ -107,4 +107,4 @@ databases:
     databaseName: yieldera_visualization
     user: yieldera_user
     region: oregon
-    plan: starter
+    plan: free
