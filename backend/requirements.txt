@@ -11,7 +11,7 @@ python-multipart==0.0.6
 
 # Background job processing
 celery[redis]==5.3.4
-redis==5.0.1
+redis==4.6.0
 
 # Database (PostgreSQL)
 sqlalchemy==2.0.23
