@@ -68,8 +68,8 @@ class Settings:
         if not self.DATABASE_URL:
             raise ValueError("DATABASE_URL is required. Please set up PostgreSQL in Render.")
             
-        if not self.REDIS_URL:
-            raise ValueError("REDIS_URL is required. Please set up Redis in Render.")
+        if self.ENVIRONMENT == "production" and not self.REDIS_URL:
+            logging.warning("REDIS_URL not set. Background tasks will not function.")
             
         if self.ENVIRONMENT == "production" and not self.GOOGLE_APPLICATION_CREDENTIALS_JSON:
             logging.warning("GOOGLE_APPLICATION_CREDENTIALS_JSON not set. GEE functionality will be limited.")
