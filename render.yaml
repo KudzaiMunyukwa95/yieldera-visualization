@@ -82,7 +82,6 @@ services:
   - type: web
     name: yieldera-viz-frontend
     env: static
-    plan: free
     buildCommand: "" # No build command needed for static HTML
     staticPublishPath: dash
     routes:
