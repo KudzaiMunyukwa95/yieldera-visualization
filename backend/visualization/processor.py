@@ -36,9 +36,12 @@ class VisualizationProcessor:
         """Initialize Google Earth Engine"""
         try:
             if settings.gee_config:
-                # settings.gee_config is already a dict (parsed in config.py)
-                # ee.ServiceAccountCredentials accepts a dict for key_data
-                credentials = ee.ServiceAccountCredentials(None, key_data=settings.gee_config)
+                # Use proven initialization pattern from gee_ndvi_generator.py
+                # key_data MUST be a JSON string, not a dict object
+                credentials = ee.ServiceAccountCredentials(
+                    email=settings.gee_config.get("client_email"),
+                    key_data=json.dumps(settings.gee_config)
+                )
                 ee.Initialize(credentials)
                 self.is_initialized = True
                 self.logger.info("✅ Google Earth Engine initialized successfully")
