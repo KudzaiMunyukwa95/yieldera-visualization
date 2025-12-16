@@ -36,6 +36,8 @@ class VisualizationProcessor:
         """Initialize Google Earth Engine"""
         try:
             if settings.gee_config:
+                # settings.gee_config is already a dict (parsed in config.py)
+                # ee.ServiceAccountCredentials accepts a dict for key_data
                 credentials = ee.ServiceAccountCredentials(None, key_data=settings.gee_config)
                 ee.Initialize(credentials)
                 self.is_initialized = True

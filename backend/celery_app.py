@@ -73,27 +73,36 @@ def process_visualization_job(self, job_id: str, job_data: dict):
             job.progress = 0
             db.commit()
     
+    # Define callback for processor
+    def update_progress_callback(progress: int, message: str):
+        """Update progress both in Celery and database"""
+        # Update Celery state
+        self.update_state(
+            state='PROGRESS',
+            meta={'progress': progress, 'message': message}
+        )
+        
+        # Update database
+        try:
+            with SessionLocal() as db:
+                job = db.query(VisualizationJob).filter(VisualizationJob.id == job_id).first()
+                if job:
+                    job.progress = progress
+                    job.message = message
+                    db.commit()
+        except Exception as e:
+            logging.error(f"Failed to update progress for job {job_id}: {e}")
+
     try:
         # Initialize processor
         processor = VisualizationProcessor()
         
         # Update progress
-        self.update_state(
-            state='PROGRESS',
-            meta={'progress': 5, 'message': 'Connecting to Google Earth Engine...'}
-        )
-        
-        # Update database
-        with SessionLocal() as db:
-            job = db.query(VisualizationJob).filter(VisualizationJob.id == job_id).first()
-            if job:
-                job.progress = 5
-                job.message = 'Connecting to Google Earth Engine...'
-                db.commit()
+        update_progress_callback(5, 'Connecting to Google Earth Engine...')
         
         # Process the visualization
         start_time = datetime.utcnow()
-        result = processor.process_job(job_id, job_data, progress_callback=self.update_progress)
+        result = processor.process_job(job_id, job_data, progress_callback=update_progress_callback)
         processing_time = (datetime.utcnow() - start_time).total_seconds()
         
         if not result['success']:
@@ -153,22 +162,6 @@ def process_visualization_job(self, job_id: str, job_data: dict):
         )
         
         raise exc
-    
-    def update_progress(self, progress: int, message: str):
-        """Update progress both in Celery and database"""
-        # Update Celery state
-        self.update_state(
-            state='PROGRESS',
-            meta={'progress': progress, 'message': message}
-        )
-        
-        # Update database
-        with SessionLocal() as db:
-            job = db.query(VisualizationJob).filter(VisualizationJob.id == job_id).first()
-            if job:
-                job.progress = progress
-                job.message = message
-                db.commit()
 
 @celery_app.task
 def cleanup_old_jobs():
