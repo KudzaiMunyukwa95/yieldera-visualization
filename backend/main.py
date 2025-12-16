@@ -140,11 +140,12 @@ async def startup_event():
     # Ensure storage directory exists
     os.makedirs(settings.VISUALIZATION_STORAGE_PATH, exist_ok=True)
     
-    # Test database connection
+# Test database connection
     try:
         from .database import engine
+        from sqlalchemy import text
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         logging.info("✅ Database connection successful")
     except Exception as e:
         logging.error(f"❌ Database connection failed: {e}")
@@ -152,9 +153,12 @@ async def startup_event():
     # Test Redis connection
     try:
         import redis
-        r = redis.from_url(settings.REDIS_URL)
-        r.ping()
-        logging.info("✅ Redis connection successful")
+        if settings.REDIS_URL:
+            r = redis.from_url(settings.REDIS_URL)
+            r.ping()
+            logging.info("✅ Redis connection successful")
+        else:
+             logging.warning("⚠️  Redis URL not set, skipping connection test")
     except Exception as e:
         logging.error(f"❌ Redis connection failed: {e}")
     
@@ -162,9 +166,9 @@ async def startup_event():
     try:
         import ee
         if settings.GOOGLE_APPLICATION_CREDENTIALS_JSON:
-            import json
-            credentials_dict = json.loads(settings.GOOGLE_APPLICATION_CREDENTIALS_JSON)
-            credentials = ee.ServiceAccountCredentials(None, key_data=credentials_dict)
+            # Pass raw JSON string to ServiceAccountCredentials
+            # It expects the JSON content as a string, not a dict
+            credentials = ee.ServiceAccountCredentials(None, key_data=settings.GOOGLE_APPLICATION_CREDENTIALS_JSON)
             ee.Initialize(credentials)
             logging.info("✅ Google Earth Engine initialized")
         else:
