@@ -517,7 +517,7 @@ class VisualizationProcessor:
             ]
         
         # Even tighter spacing for legend items to prevent collisions
-        y_positions = np.linspace(0.68, 0.18, len(legend_items))
+        y_positions = np.linspace(0.68, 0.25, len(legend_items))
         
         for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
@@ -533,13 +533,13 @@ class VisualizationProcessor:
             else:
                 ax_info.text(0.18, y_pos, label, va='center', ha='left', fontsize=9)
         
-        # Attribution (bottom)
+        # Attribution (bottom) - moved down to avoid collision
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
-        ax_info.text(0.5, 0.08, 'GENERATED', ha='center', va='top',
+        ax_info.text(0.5, 0.18, 'GENERATED', ha='center', va='top',
                     fontsize=9, weight='bold')
-        ax_info.text(0.5, 0.05, timestamp, ha='center', va='top', 
+        ax_info.text(0.5, 0.14, timestamp, ha='center', va='top', 
                     fontsize=7, style='italic')
-        ax_info.text(0.5, 0.02, 'Analysis by Yieldera Platform', ha='center', va='top',
+        ax_info.text(0.5, 0.11, 'Analysis by Yieldera Platform', ha='center', va='top',
                     fontsize=7, style='italic')
     
     def add_north_arrow(self, ax, extent: List[float]):
