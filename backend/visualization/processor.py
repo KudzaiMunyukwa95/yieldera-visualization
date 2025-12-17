@@ -299,46 +299,35 @@ class VisualizationProcessor:
         """Generate professional cartographic visualization"""
         
         try:
-            # Set up professional stylings
+            # Set up professional styling
             plt.style.use('default')
-            # Golden Mean Configuration: Professional quality, safe memory usage
-            # (12, 10) @ 150 DPI = ~3.2MP image (Safe for all tiers)
-            fig = plt.figure(figsize=(12, 10), dpi=150, facecolor='white')
+            fig = plt.figure(figsize=(12, 10), dpi=300, facecolor='white')
             
             # Create map projection
             proj = ccrs.PlateCarree()
             ax = fig.add_subplot(111, projection=proj)
             
-            # Adjust margins for professional look
-            plt.subplots_adjust(left=0.02, right=0.98, top=0.88, bottom=0.02)
-            
             # Set map extent
             ax.set_extent(extent, crs=ccrs.PlateCarree())
             
-            # Add base features FIRST (zorder=1)
+            # Add base features
             self.add_base_features(ax)
             
             # Create color scheme
             cmap, norm = self.create_color_scheme(analysis_type)
             
-            # Plot the data with interpolation - ON TOP (zorder=5)
+            # Plot the data
             im = ax.imshow(data, 
                           extent=extent,
                           transform=ccrs.PlateCarree(),
                           cmap=cmap,
                           norm=norm,
-                          alpha=0.9,
-                          interpolation='bilinear',
-                          zorder=5) 
+                          alpha=0.8,
+                          interpolation='nearest')
             
             # Add cartographic elements
-            self.add_title_block(fig, region_name, start_date, end_date, analysis_type)
+            self.add_title_block(fig, region_name, start_date, end_date, statistics, analysis_type)
             self.add_legend(fig, cmap, norm, analysis_type)
-            self.add_statistics_box(fig, statistics, analysis_type) 
-            
-            # Optional: Add Inset Map (Keep simple or disabled if unstable)
-            # self.add_inset_map(fig, extent) 
-            
             self.add_north_arrow(ax, extent)
             self.add_scale_bar(ax, extent)
             self.add_attribution(fig)
@@ -347,7 +336,7 @@ class VisualizationProcessor:
             buffer = io.BytesIO()
             plt.savefig(buffer, 
                        format='png',
-                       dpi=150,
+                       dpi=300,
                        bbox_inches='tight',
                        facecolor='white',
                        edgecolor='none')
@@ -372,235 +361,171 @@ class VisualizationProcessor:
         """Create professional color scheme for different analysis types"""
         
         if analysis_type == 'anomaly':
-            # Upgrade: Enhanced drought color palette (High Contrast)
+            # Drought to wet color scheme
             colors = [
-                '#800000',  # Extreme Drought (darker red)
-                '#B22222',  # Severe Drought (fire brick)
-                '#DC143C',  # Moderate Drought (crimson)
-                '#FF4500',  # Light Drought (orange red)
-                '#FFA500',  # Below Normal (orange)
-                '#FFD700',  # Near Normal (gold)
+                '#8B0000',  # Extreme Drought (dark red)
+                '#B22222',  # Severe Drought 
+                '#DC143C',  # Severe Drought (crimson)
+                '#FF6347',  # Moderate Drought (tomato)
+                '#FF8C00',  # Moderate Drought (dark orange)
+                '#FFD700',  # Light Drought (gold)
+                '#FFFF00',  # Light Drought (yellow)
+                '#F0F8FF',  # Near Normal (alice blue)
                 '#FFFFFF',  # Normal (white)
-                '#E0F6FF',  # Above Normal (very light blue)
+                '#E0FFFF',  # Above Normal (light cyan)
+                '#B0E0E6',  # Above Normal (powder blue)
                 '#87CEEB',  # Much Above Normal (sky blue)
-                '#4169E1',  # Exceptional (royal blue)
-                '#000080'   # Extreme Wet (navy)
+                '#4682B4',  # Much Above Normal (steel blue)
+                '#1E90FF',  # Exceptional (dodger blue)
+                '#0000CD',  # Exceptional (medium blue)
+                '#000080'   # Exceptional (navy)
             ]
-            # Updated boundaries for clearer separation
-            boundaries = [-0.08, -0.05, -0.03, -0.02, -0.01, 0.00, 0.01, 0.02, 0.03, 0.05, 0.08]
+            boundaries = [-0.08, -0.05, -0.03, -0.02, -0.01, 0.00, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10, 0.15]
             
         elif analysis_type == 'percentage':
-            colors = ['#8B0000', '#FF4500', '#FFD700', '#FFFFFF', '#87CEEB', '#4169E1', '#000080']
+            # Percentage change color scheme
+            colors = ['#8B0000', '#FF6347', '#FFD700', '#FFFFFF', '#87CEEB', '#4682B4', '#000080']
             boundaries = [-50, -25, -10, 0, 10, 25, 50]
             
         else:  # absolute
+            # Absolute moisture color scheme
             colors = ['#8B4513', '#CD853F', '#F4A460', '#F5DEB3', '#E0FFFF', '#B0E0E6', '#4682B4']
             boundaries = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
         
         cmap = ListedColormap(colors)
-        # Ensure boundaries match color count + 1
-        if len(boundaries) < len(colors) + 1:
-            # Extend boundaries if needed (simple linear extension for now)
-            while len(boundaries) < len(colors) + 1:
-                boundaries.append(boundaries[-1] + 0.05)
-                
         norm = BoundaryNorm(boundaries, cmap.N)
+        
         return cmap, norm
     
-    def add_title_block(self, fig, region_name: str, start_date: str, end_date: str, analysis_type: str):
-        """Add professional title block with improved hierarchy"""
+    def add_base_features(self, ax):
+        """Add base cartographic features"""
+        
+        ax.add_feature(cfeature.COASTLINE, linewidth=0.5, color='gray')
+        ax.add_feature(cfeature.BORDERS, linewidth=0.8, color='black')
+        ax.add_feature(cfeature.RIVERS, linewidth=0.3, color='blue', alpha=0.6)
+        ax.add_feature(cfeature.LAKES, linewidth=0.3, color='blue', alpha=0.3)
+        
+        # Add grid lines
+        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                         linewidth=0.3, color='gray', alpha=0.7, linestyle='--')
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.xformatter = LONGITUDE_FORMATTER
+        gl.yformatter = LATITUDE_FORMATTER
+    
+    def add_title_block(self, fig, region_name: str, start_date: str, end_date: str, 
+                       statistics: Dict, analysis_type: str):
+        """Add professional title block"""
         
         # Format date range
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
         end_dt = datetime.strptime(end_date, '%Y-%m-%d')
         
-        date_str = f"{start_dt.strftime('%d %b')} - {end_dt.strftime('%d %b %Y')}"
+        if start_dt.year == end_dt.year:
+            if start_dt.month == end_dt.month:
+                date_str = f"{start_dt.strftime('%b %d')}-{end_dt.strftime('%d, %Y')}"
+            else:
+                date_str = f"{start_dt.strftime('%b %d')} to {end_dt.strftime('%b %d, %Y')}"
+        else:
+            date_str = f"{start_dt.strftime('%b %d, %Y')} to {end_dt.strftime('%b %d, %Y')}"
         
         # Main title
-        title = f"{region_name} Soil Moisture Analysis"
-        fig.suptitle(title, fontsize=20, fontweight='900', y=0.96, ha='center', color='#1a1a1a')
+        title = f"{region_name} Soil Moisture Anomaly – {date_str}"
+        fig.suptitle(title, fontsize=16, fontweight='bold', y=0.95, ha='center')
         
-        # Subtitle with date and type
-        subtitle = f"{analysis_type.title().replace('_', ' ')} Assessment | Period: {date_str}"
-        fig.text(0.5, 0.93, subtitle, ha='center', fontsize=12, color='#404040')
+        # Data source subtitle
+        fig.text(0.5, 0.92, "Data: ERA5-Land satellite observations (0-7cm soil layer)",
+                ha='center', fontsize=12, style='italic')
         
-        # Technical subtitle
-        fig.text(0.5, 0.91, "Data Source: ERA5-Land Satellite Observations (0-7cm Soil depth)",
-                ha='center', fontsize=9, style='italic', color='#666666')
-
-    def add_statistics_box(self, fig, statistics: Dict, analysis_type: str):
-        """Add professional statistics summary box"""
+        # Processing info
+        fig.text(0.5, 0.89, "Processing: GEE | Visualization: Yieldera Platform",
+                ha='center', fontsize=11)
         
-        stats_ax = fig.add_axes([0.68, 0.04, 0.28, 0.15]) # Adjusted position
-        stats_ax.axis('off')
-        
-        # Create background box
-        rect = mpatches.FancyBboxPatch((0, 0), 1, 1,
-                                     boxstyle="round,pad=0.05",
-                                     ec="#333333", fc="white", 
-                                     alpha=0.95, transform=stats_ax.transAxes,
-                                     linewidth=1.0, zorder=10)
-        stats_ax.add_patch(rect)
-        
-        # Title
-        stats_ax.text(0.5, 0.85, "REGIONAL ANALYSIS SUMMARY", 
-                     ha='center', va='center', fontsize=10, fontweight='bold',
-                     color='white', bbox=dict(facecolor='#333333', edgecolor='none', pad=3.0))
-        
-        # Metrics
-        mean_val = statistics.get('mean_anomaly', 0)
+        # Statistics summary
         percentage = statistics.get('percentage_change', 0)
-        
-        # Determine risk level
-        if percentage < -20:
-            risk_level = "CRITICAL DROUGHT"
-            risk_color = "#8B0000"
-        elif percentage < -10:
-            risk_level = "HIGH RISK"
-            risk_color = "#FF4500"
-        elif percentage < 0:
-            risk_level = "MODERATE WATCH"
-            risk_color = "#FFA500"
-        elif percentage < 10:
-            risk_level = "NORMAL CONDITIONS"
-            risk_color = "#2E8B57"
-        else:
-            risk_level = "FAVORABLE MOISTURE"
-            risk_color = "#006400"
-            
-        # Display metrics - Scaled fonts
-        stats_ax.text(0.1, 0.65, f"Mean Anomaly:", fontsize=9, fontweight='bold')
-        stats_ax.text(0.9, 0.65, f"{mean_val:+.3f} m³/m³", fontsize=9, ha='right')
-        
-        stats_ax.text(0.1, 0.45, f"Departure:", fontsize=9, fontweight='bold')
-        stats_ax.text(0.9, 0.45, f"{percentage:+.1f}%", fontsize=9, ha='right', 
-                     color='red' if percentage < 0 else 'green')
-        
-        stats_ax.text(0.1, 0.20, f"Risk Status:", fontsize=9, fontweight='bold')
-        stats_ax.text(0.9, 0.20, risk_level, fontsize=9, ha='right', 
-                     fontweight='bold', color=risk_color)
-
+        stats_text = f"Regional Average: {statistics.get('mean_anomaly', 0):.3f} m³/m³ ({percentage:+.1f}% from normal)"
+        fig.text(0.5, 0.86, stats_text,
+                ha='center', fontsize=11, weight='bold',
+                bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgray', alpha=0.8))
+    
     def add_legend(self, fig, cmap, norm, analysis_type: str):
-        """Add professional legend with thresholds"""
+        """Add professional legend"""
         
-        # Adjust legend position
-        legend_ax = fig.add_axes([0.03, 0.04, 0.20, 0.30]) 
+        legend_ax = fig.add_axes([0.02, 0.02, 0.35, 0.25])
+        legend_ax.set_xlim(0, 1)
+        legend_ax.set_ylim(0, 1)
         legend_ax.axis('off')
         
-        # Legend Title
-        title = "Soil Moisture\nAnomaly (m³/m³)" if analysis_type == 'anomaly' else "Analysis Scale"
-        legend_ax.text(0.0, 1.0, title, va='top', ha='left', fontsize=11, fontweight='bold')
+        # Legend title
+        titles = {
+            'anomaly': 'Soil Moisture Difference from Normal (m³/m³)',
+            'percentage': 'Percentage Change from Normal (%)',
+            'absolute': 'Absolute Soil Moisture (m³/m³)'
+        }
         
-        # Define categories with quantitative thresholds labels
+        legend_ax.text(0.5, 0.95, titles.get(analysis_type, 'Soil Moisture Analysis'),
+                      ha='center', va='top', fontsize=11, weight='bold')
+        
+        # Legend categories
         if analysis_type == 'anomaly':
-            items = [
-                ('> +0.08', 'Extreme Wet', '#000080'),
-                ('+0.05 to +0.08', 'Exceptional', '#4169E1'),
-                ('+0.03 to +0.05', 'Much Above', '#87CEEB'),
-                ('+0.02 to +0.03', 'Above Normal', '#E0F6FF'),
-                ('-0.01 to +0.01', 'Normal Range', '#FFFFFF'),
-                ('-0.02 to -0.01', 'Below Normal', '#FFD700'),
-                ('-0.03 to -0.02', 'Moderate Drought', '#FF4500'),
-                ('-0.05 to -0.03', 'Severe Drought', '#B22222'),
-                ('< -0.08', 'Extreme Drought', '#800000'),
+            legend_items = [
+                ('Exceptional Above Normal', '#000080'),
+                ('Much Above Normal', '#4682B4'),
+                ('Above Normal', '#87CEEB'),
+                ('Normal Conditions', '#FFFFFF'),
+                ('Below Normal', '#FFD700'),
+                ('Much Below Normal', '#FF6347'),
+                ('Extreme Drought', '#8B0000')
             ]
         else:
-            items = [('High', 'High', '#000080'), ('Low', 'Low', '#8B0000')] 
-            
-        # Draw legend items
-        y_start = 0.85
-        spacing = 0.08 # Tighter spacing
+            legend_items = [
+                ('High', '#000080'),
+                ('Above Average', '#4682B4'),
+                ('Average', '#FFFFFF'),
+                ('Below Average', '#FFD700'),
+                ('Low', '#8B0000')
+            ]
         
-        for i, (threshold, label, color) in enumerate(items):
-            y_pos = y_start - (i * spacing)
-            
-            # Color box
-            rect = plt.Rectangle((0.0, y_pos), 0.15, 0.05, 
-                               fc=color, ec='black', lw=0.5)
+        y_positions = np.linspace(0.85, 0.15, len(legend_items))
+        
+        for (label, color), y_pos in zip(legend_items, y_positions):
+            # Color patch
+            rect = plt.Rectangle((0.05, y_pos-0.03), 0.08, 0.05,
+                               facecolor=color, edgecolor='black', linewidth=0.5)
             legend_ax.add_patch(rect)
             
             # Label
-            legend_ax.text(0.20, y_pos + 0.025, label, 
-                          va='center', fontsize=9, fontweight='bold')
-            
-            # Threshold
-            legend_ax.text(0.20, y_pos - 0.03, threshold, 
-                          va='bottom', fontsize=7, color='#444444')
-
-    def add_inset_map(self, fig, extent):
-        """Add inset map showing location in Africa"""
-        try:
-            # Create inset axes at top right
-            inset_ax = fig.add_axes([0.75, 0.70, 0.2, 0.2], projection=ccrs.PlateCarree())
-            
-            # Add Africa context
-            inset_ax.set_extent([-20, 55, -40, 40], crs=ccrs.PlateCarree())
-            inset_ax.add_feature(cfeature.LAND, facecolor='#E0E0E0')
-            inset_ax.add_feature(cfeature.OCEAN, facecolor='#F0F8FF')
-            inset_ax.add_feature(cfeature.BORDERS, linewidth=0.5, color='white')
-            
-            # Highlight current extent (Zimbabwe region)
-            # Create a box for the current extent
-            lons = [extent[0], extent[1], extent[1], extent[0], extent[0]]
-            lats = [extent[2], extent[2], extent[3], extent[3], extent[2]]
-            
-            inset_ax.plot(lons, lats, color='red', linewidth=2, transform=ccrs.PlateCarree())
-            
-            # Add simple border
-            for spine in inset_ax.spines.values():
-                spine.set_edgecolor('black')
-                spine.set_linewidth(1)
-                
-        except Exception as e:
-            self.logger.warning(f"Could not add inset map: {e}")
-
-    def add_base_features(self, ax):
-        """Add base map features with optimized resolution"""
-        # RESTORE 50m resolution (Quality balance)
-        res = '50m' 
-        land = cfeature.NaturalEarthFeature('physical', 'land', res,
-                                              edgecolor='none', facecolor='#F5F5F5')
-        ocean = cfeature.NaturalEarthFeature('physical', 'ocean', res,
-                                               edgecolor='none', facecolor='#E0F6FF')
-        borders = cfeature.NaturalEarthFeature('cultural', 'admin_0_countries', res,
-                                                 edgecolor='#444444', facecolor='none', linewidth=0.5)
+            legend_ax.text(0.18, y_pos, label, va='center', ha='left', fontsize=9)
+    
+    def add_north_arrow(self, ax, extent: List[float]):
+        """Add north arrow"""
         
-        ax.add_feature(land, zorder=1)
-        ax.add_feature(ocean, zorder=1)
-        ax.add_feature(borders, zorder=2) # Borders slightly higher
+        x_range = extent[1] - extent[0]
+        y_range = extent[3] - extent[2]
         
-        # Add gridlines
-        gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', 
-                         alpha=0.5, linestyle='--')
-        gl.top_labels = False
-        gl.right_labels = False
-        gl.xformatter = LONGITUDE_FORMATTER
-        gl.yformatter = LATITUDE_FORMATTER
-        gl.xlabel_style = {'size': 9, 'color': 'gray'}
-        gl.ylabel_style = {'size': 9, 'color': 'gray'}
-
-    def add_north_arrow(self, ax, extent):
-        """Add north arrow to map"""
-        x, y, arrow_length = 0.95, 0.95, 0.1
-        ax.annotate('N', xy=(x, y), xytext=(x, y-arrow_length),
-                   arrowprops=dict(facecolor='black', width=4, headwidth=10),
-                   ha='center', va='center', fontsize=10,
-                   xycoords=ax.transAxes, zorder=10)
-
-    def add_scale_bar(self, ax, extent):
-        """Add scale bar to map"""
+        arrow_x = extent[1] - x_range * 0.08
+        arrow_y = extent[3] - y_range * 0.08
+        
+        ax.annotate('N', xy=(arrow_x, arrow_y), xytext=(arrow_x, arrow_y - y_range * 0.05),
+                   ha='center', va='center', fontsize=12, fontweight='bold',
+                   arrowprops=dict(arrowstyle='->', lw=2, color='black'))
+    
+    def add_scale_bar(self, ax, extent: List[float]):
+        """Add scale bar"""
         try:
             from matplotlib_scalebar.scalebar import ScaleBar
-            # Approx 1 degree lat = 111km. This is a rough approx for scale bar.
-            scalebar = ScaleBar(111319, location='lower right', pad=0.5) 
+            scalebar = ScaleBar(111320, location='lower right', box_alpha=0.8, color='black')
             ax.add_artist(scalebar)
         except ImportError:
-            pass # Skip if library missing
-
+            # If matplotlib-scalebar not available, skip scale bar
+            pass
+    
     def add_attribution(self, fig):
-        """Add professional attribution line"""
-        text = f"Generated by Yieldera Intelligence Platform | {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}"
-        fig.text(0.98, 0.01, text, ha='right', fontsize=8, color='#666666', style='italic')
+        """Add attribution block"""
+        
+        attribution = f"Analysis by Yieldera Platform | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+        fig.text(0.99, 0.01, attribution, ha='right', va='bottom', fontsize=8, style='italic',
+                bbox=dict(boxstyle="round,pad=0.3", facecolor='white', alpha=0.9))
     
     def save_outputs(self, job_id: str, map_result: Dict, gee_result: Dict) -> Dict:
         """Save visualization outputs to storage"""

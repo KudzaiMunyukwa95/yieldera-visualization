@@ -229,61 +229,36 @@ const VisualizationModule = (function () {
 
     function renderResults(data) {
         elements.resultsPanel.innerHTML = `
-            <div class="result-card bg-white dark:bg-secondary-light rounded-lg shadow-lg flex flex-col h-full">
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-secondary">
-                    <h3 class="font-bold text-lg dark:text-white flex items-center">
-                        <i class="fas fa-satellite-dish mr-2 text-primary"></i>
-                        Analysis Results
-                    </h3>
-                    <div class="flex gap-2">
-                         <button class="bg-primary text-secondary px-4 py-2 rounded-lg font-bold hover:bg-primary-light transition shadow flex items-center" onclick="VisualizationModule.downloadImage('${data.job_id}')">
-                            <i class="fas fa-download mr-2"></i> Save Map
-                        </button>
+            <div class="result-card bg-white dark:bg-secondary-light rounded-lg shadow-lg overflow-hidden">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="font-bold text-lg dark:text-white">Analysis Results</h3>
+                </div>
+                <div class="p-4">
+                    <img src="data:image/png;base64,${data.image_data}" class="w-full rounded mb-4 shadow" />
+                    
+                    <div class="stats-grid grid grid-cols-2 gap-4 mb-4">
+                        <div class="stat-box p-3 bg-gray-50 dark:bg-secondary rounded">
+                            <div class="text-xs text-gray-500">Mean Anomaly</div>
+                            <div class="text-lg font-bold">${data.statistics?.mean_anomaly?.toFixed(3) || 'N/A'}</div>
+                        </div>
+                         <div class="stat-box p-3 bg-gray-50 dark:bg-secondary rounded">
+                            <div class="text-xs text-gray-500">Max Anomaly</div>
+                            <div class="text-lg font-bold">${data.statistics?.max_anomaly?.toFixed(3) || 'N/A'}</div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="relative flex-1 bg-gray-100 dark:bg-gray-800 p-4 overflow-auto flex items-center justify-center">
-                    <img id="resultImage" src="data:image/png;base64,${data.image_data}" 
-                         class="max-w-full max-h-full object-contain shadow-lg rounded border border-gray-200 dark:border-gray-700" 
-                         alt="Satellite Analysis Result" />
-                </div>
 
-                <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-secondary-light">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="stat-box p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
-                            <div class="text-xs text-blue-600 dark:text-blue-300 uppercase font-bold tracking-wider mb-1">Mean Anomaly</div>
-                            <div class="text-2xl font-bold text-gray-800 dark:text-white">${data.statistics?.mean_anomaly?.toFixed(3) || '0.000'} <span class="text-xs font-normal text-gray-500">m³/m³</span></div>
-                        </div>
-                        <div class="stat-box p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-lg">
-                            <div class="text-xs text-purple-600 dark:text-purple-300 uppercase font-bold tracking-wider mb-1">Departure</div>
-                            <div class="text-2xl font-bold ${data.statistics?.percentage_change < 0 ? 'text-red-500' : 'text-green-500'}">
-                                ${data.statistics?.percentage_change?.toFixed(1) || '0.0'}%
-                            </div>
-                        </div>
-                         <div class="stat-box p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg flex items-center justify-center">
-                             <div class="text-center">
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Analysis Period</div>
-                                <div class="font-medium text-sm dark:text-white">${data.period || 'Oct 2025'}</div>
-                             </div>
-                        </div>
+                    <div class="flex gap-2">
+                        <button class="flex-1 bg-primary text-secondary py-2 rounded hover:bg-primary-light transition" onclick="VisualizationModule.exportMap('png')">
+                            <i class="fas fa-download mr-1"></i> PNG
+                        </button>
+                         <button class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 transition" onclick="VisualizationModule.exportMap('pdf')">
+                            <i class="fas fa-file-pdf mr-1"></i> PDF
+                        </button>
                     </div>
                 </div>
             </div>
         `;
         elements.resultsPanel.style.display = 'block';
-    }
-
-    // New helper to download image directly from the img tag
-    function downloadImage(jobId) {
-        const img = document.getElementById('resultImage');
-        if (img) {
-            const a = document.createElement('a');
-            a.href = img.src;
-            a.download = `Yieldera_Analysis_${jobId}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
     }
 
     // Export Helper (Public)
@@ -336,8 +311,7 @@ const VisualizationModule = (function () {
     // Public API
     return {
         init: init,
-        exportMap: exportMap,
-        downloadImage: downloadImage
+        exportMap: exportMap
     };
 })();
 
