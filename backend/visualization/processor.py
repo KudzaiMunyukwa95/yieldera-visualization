@@ -502,7 +502,7 @@ class VisualizationProcessor:
                     ha='center', va='top', fontsize=9,
                     color=risk_color, weight='bold')
         
-        # Section 3: Legend with thresholds
+        # Section 3: Legend with thresholds (moved to bottom)
         ax_info.text(0.5, 0.68, 'LEGEND', ha='center', va='top',
                     fontsize=11, weight='bold')
         
@@ -536,7 +536,8 @@ class VisualizationProcessor:
                 ('Low', '#8B0000', '')
             ]
         
-        y_positions = np.linspace(0.60, 0.28, len(legend_items))
+        # Move legend down - use space from 0.60 to 0.12 (removed processing section)
+        y_positions = np.linspace(0.60, 0.12, len(legend_items))
         
         for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
@@ -552,19 +553,13 @@ class VisualizationProcessor:
             else:
                 ax_info.text(0.18, y_pos, label, va='center', ha='left', fontsize=9)
         
-        # Section 4: Processing Information
-        ax_info.text(0.5, 0.22, 'PROCESSING', ha='center', va='top',
-                    fontsize=10, weight='bold')
-        ax_info.text(0.5, 0.18, 'Google Earth Engine', ha='center', va='top', fontsize=8)
-        ax_info.text(0.5, 0.15, 'Yieldera Platform', ha='center', va='top', fontsize=8)
-        
-        # Section 5: Attribution (bottom)
+        # Attribution (bottom) - removed processing section
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
-        ax_info.text(0.5, 0.08, 'GENERATED', ha='center', va='top',
+        ax_info.text(0.5, 0.06, 'GENERATED', ha='center', va='top',
                     fontsize=9, weight='bold')
-        ax_info.text(0.5, 0.05, timestamp, ha='center', va='top', 
+        ax_info.text(0.5, 0.03, timestamp, ha='center', va='top', 
                     fontsize=7, style='italic')
-        ax_info.text(0.5, 0.02, 'Analysis by Yieldera Platform', ha='center', va='top',
+        ax_info.text(0.5, 0.01, 'Analysis by Yieldera Platform', ha='center', va='top',
                     fontsize=7, style='italic')
     
     def add_north_arrow(self, ax, extent: List[float]):
