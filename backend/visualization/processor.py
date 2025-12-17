@@ -370,33 +370,25 @@ class VisualizationProcessor:
             return {'success': False, 'error': str(e)}
     
     def create_color_scheme(self, analysis_type: str) -> Tuple:
-        """Create professional color scheme for different analysis types"""
+        """Create professional color scheme with enhanced contrast"""
         
         if analysis_type == 'anomaly':
-            # Drought to wet color scheme
+            # Enhanced drought to wet color scheme with better contrast
             colors = [
                 '#8B0000',  # Extreme Drought (dark red)
-                '#B22222',  # Severe Drought 
                 '#DC143C',  # Severe Drought (crimson)
                 '#FF6347',  # Moderate Drought (tomato)
-                '#FF8C00',  # Moderate Drought (dark orange)
-                '#FFD700',  # Light Drought (gold)
-                '#FFFF00',  # Light Drought (yellow)
-                '#F0F8FF',  # Near Normal (alice blue)
+                '#FFD700',  # Below Normal (gold)
                 '#FFFFFF',  # Normal (white)
-                '#E0FFFF',  # Above Normal (light cyan)
-                '#B0E0E6',  # Above Normal (powder blue)
-                '#87CEEB',  # Much Above Normal (sky blue)
-                '#4682B4',  # Much Above Normal (steel blue)
-                '#1E90FF',  # Exceptional (dodger blue)
-                '#0000CD',  # Exceptional (medium blue)
+                '#87CEEB',  # Above Normal (sky blue)
+                '#4169E1',  # Much Above Normal (royal blue)
                 '#000080'   # Exceptional (navy)
             ]
-            boundaries = [-0.08, -0.05, -0.03, -0.02, -0.01, 0.00, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10, 0.15]
+            boundaries = [-0.08, -0.05, -0.03, -0.01, 0.01, 0.03, 0.05, 0.08]
             
         elif analysis_type == 'percentage':
             # Percentage change color scheme
-            colors = ['#8B0000', '#FF6347', '#FFD700', '#FFFFFF', '#87CEEB', '#4682B4', '#000080']
+            colors = ['#8B0000', '#FF6347', '#FFD700', '#FFFFFF', '#87CEEB', '#4169E1', '#000080']
             boundaries = [-50, -25, -10, 0, 10, 25, 50]
             
         else:  # absolute
@@ -440,8 +432,8 @@ class VisualizationProcessor:
         else:
             date_str = f"{start_dt.strftime('%b %d, %Y')} to {end_dt.strftime('%b %d, %Y')}"
         
-        # Main title - only element above map
-        title = f"{region_name} (Complete Country) Soil Moisture Anomaly – {date_str}"
+        # Main title - fix duplication issue
+        title = f"{region_name} Soil Moisture Anomaly – {date_str}"
         ax_map.set_title(title, fontsize=14, fontweight='bold', pad=15)
     
     def add_information_sidebar(self, ax_info, region_name: str, start_date: str, 
@@ -458,28 +450,60 @@ class VisualizationProcessor:
         ax_info.text(0.5, 0.94, 'ERA5-Land Satellite\nObservations\n(0-7cm soil layer)', 
                     ha='center', va='top', fontsize=9, style='italic')
         
-        # Section 2: Regional Statistics Box
+        # Section 2: Risk Assessment & Statistics
+        percentage = statistics.get('percentage_change', 0)
+        mean_anomaly = statistics.get('mean_anomaly', 0)
+        
+        # Determine risk level and color
+        if percentage > 15:
+            risk_level = 'FAVORABLE'
+            risk_color = '#2E7D32'  # Green
+            box_color = '#E8F5E9'
+        elif percentage > 0:
+            risk_level = 'NORMAL'
+            risk_color = '#1976D2'  # Blue
+            box_color = '#E3F2FD'
+        elif percentage > -15:
+            risk_level = 'MODERATE CONCERN'
+            risk_color = '#F57C00'  # Orange
+            box_color = '#FFF3E0'
+        else:
+            risk_level = 'HIGH CONCERN'
+            risk_color = '#C62828'  # Red
+            box_color = '#FFEBEE'
+        
         from matplotlib.patches import FancyBboxPatch
-        stats_box = FancyBboxPatch((0.05, 0.78), 0.9, 0.13, 
+        
+        # Risk assessment box
+        risk_box = FancyBboxPatch((0.05, 0.83), 0.9, 0.08, 
+                                  boxstyle="round,pad=0.01", 
+                                  edgecolor=risk_color, facecolor=box_color, 
+                                  linewidth=2)
+        ax_info.add_patch(risk_box)
+        
+        ax_info.text(0.5, 0.895, 'RISK ASSESSMENT', ha='center', va='top',
+                    fontsize=9, weight='bold')
+        ax_info.text(0.5, 0.86, risk_level, ha='center', va='top',
+                    fontsize=11, weight='bold', color=risk_color)
+        
+        # Statistics box
+        stats_box = FancyBboxPatch((0.05, 0.72), 0.9, 0.09, 
                                    boxstyle="round,pad=0.01", 
                                    edgecolor='black', facecolor='#f0f0f0', 
                                    linewidth=1.5)
         ax_info.add_patch(stats_box)
         
-        ax_info.text(0.5, 0.88, 'REGIONAL STATISTICS', ha='center', va='top',
+        ax_info.text(0.5, 0.795, 'REGIONAL STATISTICS', ha='center', va='top',
                     fontsize=10, weight='bold')
         
-        percentage = statistics.get('percentage_change', 0)
-        mean_anomaly = statistics.get('mean_anomaly', 0)
-        
-        ax_info.text(0.5, 0.845, f"Mean: {mean_anomaly:.3f} m³/m³", 
+        ax_info.text(0.5, 0.76, f"Mean: {mean_anomaly:.3f} m³/m³", 
                     ha='center', va='top', fontsize=10, weight='bold')
-        ax_info.text(0.5, 0.81, f"Change: {percentage:+.1f}% from normal", 
+        ax_info.text(0.5, 0.73, f"Change: {percentage:+.1f}% from normal", 
                     ha='center', va='top', fontsize=9,
-                    color='red' if percentage < 0 else 'blue')
+                    color=risk_color, weight='bold')
         
-        # Section 3: Legend (largest section)
-        ax_info.text(0.5, 0.74, 'LEGEND', ha='center', va='top',
+        # Section 3: Legend with thresholds
+        ax_info.text(0.5, 0.68, 'LEGEND', ha='center', va='top',
                     fontsize=11, weight='bold')
         
         # Legend title
@@ -489,39 +513,44 @@ class VisualizationProcessor:
             'absolute': 'Absolute Soil Moisture (m³/m³)'
         }
         
-        ax_info.text(0.5, 0.70, titles.get(analysis_type, 'Soil Moisture Analysis'),
+        ax_info.text(0.5, 0.64, titles.get(analysis_type, 'Soil Moisture Analysis'),
                     ha='center', va='top', fontsize=8, style='italic')
         
-        # Legend categories
+        # Legend categories with thresholds
         if analysis_type == 'anomaly':
             legend_items = [
-                ('Exceptional Above Normal', '#000080'),
-                ('Much Above Normal', '#4682B4'),
-                ('Above Normal', '#87CEEB'),
-                ('Normal Conditions', '#FFFFFF'),
-                ('Below Normal', '#FFD700'),
-                ('Much Below Normal', '#FF6347'),
-                ('Extreme Drought', '#8B0000')
+                ('Exceptional Above Normal', '#000080', '(+0.05 to +0.08)'),
+                ('Much Above Normal', '#4169E1', '(+0.03 to +0.05)'),
+                ('Above Normal', '#87CEEB', '(+0.01 to +0.03)'),
+                ('Normal Conditions', '#FFFFFF', '(-0.01 to +0.01)'),
+                ('Below Normal', '#FFD700', '(-0.03 to -0.01)'),
+                ('Severe Drought', '#FF6347', '(-0.05 to -0.03)'),
+                ('Extreme Drought', '#8B0000', '(< -0.05)')
             ]
         else:
             legend_items = [
-                ('High', '#000080'),
-                ('Above Average', '#4682B4'),
-                ('Average', '#FFFFFF'),
-                ('Below Average', '#FFD700'),
-                ('Low', '#8B0000')
+                ('High', '#000080', ''),
+                ('Above Average', '#4169E1', ''),
+                ('Average', '#FFFFFF', ''),
+                ('Below Average', '#FFD700', ''),
+                ('Low', '#8B0000', '')
             ]
         
-        y_positions = np.linspace(0.64, 0.28, len(legend_items))
+        y_positions = np.linspace(0.60, 0.28, len(legend_items))
         
-        for (label, color), y_pos in zip(legend_items, y_positions):
+        for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
-            rect = plt.Rectangle((0.08, y_pos-0.015), 0.12, 0.025,
+            rect = plt.Rectangle((0.05, y_pos-0.012), 0.10, 0.020,
                                facecolor=color, edgecolor='black', linewidth=0.8)
             ax_info.add_patch(rect)
             
-            # Label
-            ax_info.text(0.25, y_pos, label, va='center', ha='left', fontsize=9)
+            # Label with threshold
+            if threshold:
+                ax_info.text(0.18, y_pos, label, va='center', ha='left', fontsize=8, weight='bold')
+                ax_info.text(0.18, y_pos-0.015, threshold, va='top', ha='left', 
+                           fontsize=6, style='italic', color='gray')
+            else:
+                ax_info.text(0.18, y_pos, label, va='center', ha='left', fontsize=9)
         
         # Section 4: Processing Information
         ax_info.text(0.5, 0.22, 'PROCESSING', ha='center', va='top',
