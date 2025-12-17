@@ -331,7 +331,7 @@ class VisualizationProcessor:
                           cmap=cmap,
                           norm=norm,
                           alpha=0.8,
-                          interpolation='nearest')
+                          interpolation='bilinear')
             
             # Add map title (only element on map besides the data)
             self.add_map_title(ax_map, region_name, start_date, end_date)
