@@ -433,7 +433,9 @@ class VisualizationProcessor:
             date_str = f"{start_dt.strftime('%b %d, %Y')} to {end_dt.strftime('%b %d, %Y')}"
         
         # Main title - fix duplication issue
-        title = f"{region_name} Soil Moisture Anomaly – {date_str}"
+        # Remove (Complete Country) if present to avoid duplication/clutter
+        clean_region_name = region_name.replace("(Complete Country)", "").strip()
+        title = f"{clean_region_name} Soil Moisture Anomaly – {date_str}"
         ax_map.set_title(title, fontsize=14, fontweight='bold', pad=15)
     
     def add_information_sidebar(self, ax_info, region_name: str, start_date: str, 
@@ -466,24 +468,25 @@ class VisualizationProcessor:
         
         from matplotlib.patches import FancyBboxPatch
         
-        # Statistics box (moved up)
-        stats_box = FancyBboxPatch((0.05, 0.83), 0.9, 0.09, 
+        # Statistics box (moved down to avoid overlap with Data Source)
+        # Top was ~0.92 (0.83+0.09). Moving down to top ~0.88.
+        stats_box = FancyBboxPatch((0.05, 0.79), 0.9, 0.09, 
                                    boxstyle="round,pad=0.01", 
                                    edgecolor='black', facecolor='#f0f0f0', 
                                    linewidth=1.5)
         ax_info.add_patch(stats_box)
         
-        ax_info.text(0.5, 0.905, 'REGIONAL STATISTICS', ha='center', va='top',
+        ax_info.text(0.5, 0.865, 'REGIONAL STATISTICS', ha='center', va='top',
                     fontsize=10, weight='bold')
         
-        ax_info.text(0.5, 0.87, f"Mean: {mean_anomaly:.3f} m³/m³", 
+        ax_info.text(0.5, 0.83, f"Mean: {mean_anomaly:.3f} m³/m³", 
                     ha='center', va='top', fontsize=10, weight='bold')
-        ax_info.text(0.5, 0.84, f"Change: {percentage:+.1f}% from normal", 
+        ax_info.text(0.5, 0.80, f"Change: {percentage:+.1f}% from normal", 
                     ha='center', va='top', fontsize=9,
                     color=stat_color, weight='bold')
         
-        # Section 3: Legend with thresholds (more space, tighter spacing)
-        ax_info.text(0.05, 0.79, 'LEGEND', ha='left', va='top',
+        # Section 3: Legend with thresholds (moved down)
+        ax_info.text(0.05, 0.75, 'LEGEND', ha='left', va='top',
                     fontsize=11, weight='bold')
         
         # Legend title
@@ -493,7 +496,7 @@ class VisualizationProcessor:
             'absolute': 'Absolute Soil Moisture (m³/m³)'
         }
         
-        ax_info.text(0.05, 0.75, titles.get(analysis_type, 'Soil Moisture Analysis'),
+        ax_info.text(0.05, 0.71, titles.get(analysis_type, 'Soil Moisture Analysis'),
                     ha='left', va='top', fontsize=7, style='italic')
         
         # Legend categories with thresholds
@@ -516,8 +519,8 @@ class VisualizationProcessor:
                 ('Low', '#8B0000', '')
             ]
         
-        # Even tighter spacing for legend items to prevent collisions
-        y_positions = np.linspace(0.68, 0.25, len(legend_items))
+        # Legend positioning adjusted down
+        y_positions = np.linspace(0.65, 0.22, len(legend_items))
         
         for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
@@ -535,11 +538,11 @@ class VisualizationProcessor:
         
         # Attribution (bottom) - moved down to avoid collision
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
-        ax_info.text(0.5, 0.18, 'GENERATED', ha='center', va='top',
+        ax_info.text(0.5, 0.16, 'GENERATED', ha='center', va='top',
                     fontsize=9, weight='bold')
-        ax_info.text(0.5, 0.14, timestamp, ha='center', va='top', 
+        ax_info.text(0.5, 0.12, timestamp, ha='center', va='top', 
                     fontsize=7, style='italic')
-        ax_info.text(0.5, 0.11, 'Analysis by Yieldera Platform', ha='center', va='top',
+        ax_info.text(0.5, 0.09, 'Analysis by Yieldera Platform', ha='center', va='top',
                     fontsize=7, style='italic')
     
     def add_north_arrow(self, ax, extent: List[float]):
