@@ -450,71 +450,51 @@ class VisualizationProcessor:
         ax_info.text(0.5, 0.94, 'ERA5-Land Satellite\nObservations\n(0-7cm soil layer)', 
                     ha='center', va='top', fontsize=9, style='italic')
         
-        # Section 2: Risk Assessment & Statistics
+        # Section 2: Regional Statistics (removed risk assessment)
         percentage = statistics.get('percentage_change', 0)
         mean_anomaly = statistics.get('mean_anomaly', 0)
         
-        # Determine risk level and color
+        # Determine color based on percentage
         if percentage > 15:
-            risk_level = 'FAVORABLE'
-            risk_color = '#2E7D32'  # Green
-            box_color = '#E8F5E9'
+            stat_color = '#2E7D32'  # Green
         elif percentage > 0:
-            risk_level = 'NORMAL'
-            risk_color = '#1976D2'  # Blue
-            box_color = '#E3F2FD'
+            stat_color = '#1976D2'  # Blue
         elif percentage > -15:
-            risk_level = 'MODERATE CONCERN'
-            risk_color = '#F57C00'  # Orange
-            box_color = '#FFF3E0'
+            stat_color = '#F57C00'  # Orange
         else:
-            risk_level = 'HIGH CONCERN'
-            risk_color = '#C62828'  # Red
-            box_color = '#FFEBEE'
+            stat_color = '#C62828'  # Red
         
         from matplotlib.patches import FancyBboxPatch
         
-        # Risk assessment box
-        risk_box = FancyBboxPatch((0.05, 0.83), 0.9, 0.08, 
-                                  boxstyle="round,pad=0.01", 
-                                  edgecolor=risk_color, facecolor=box_color, 
-                                  linewidth=2)
-        ax_info.add_patch(risk_box)
-        
-        ax_info.text(0.5, 0.895, 'RISK ASSESSMENT', ha='center', va='top',
-                    fontsize=9, weight='bold')
-        ax_info.text(0.5, 0.86, risk_level, ha='center', va='top',
-                    fontsize=11, weight='bold', color=risk_color)
-        
-        # Statistics box
-        stats_box = FancyBboxPatch((0.05, 0.72), 0.9, 0.09, 
+        # Statistics box (moved up)
+        stats_box = FancyBboxPatch((0.05, 0.83), 0.9, 0.09, 
                                    boxstyle="round,pad=0.01", 
                                    edgecolor='black', facecolor='#f0f0f0', 
                                    linewidth=1.5)
         ax_info.add_patch(stats_box)
         
-        ax_info.text(0.5, 0.795, 'REGIONAL STATISTICS', ha='center', va='top',
+        ax_info.text(0.5, 0.905, 'REGIONAL STATISTICS', ha='center', va='top',
                     fontsize=10, weight='bold')
         
-        ax_info.text(0.5, 0.76, f"Mean: {mean_anomaly:.3f} m³/m³", 
+        ax_info.text(0.5, 0.87, f"Mean: {mean_anomaly:.3f} m³/m³", 
                     ha='center', va='top', fontsize=10, weight='bold')
-        ax_info.text(0.5, 0.73, f"Change: {percentage:+.1f}% from normal", 
+        ax_info.text(0.5, 0.84, f"Change: {percentage:+.1f}% from normal", 
                     ha='center', va='top', fontsize=9,
-                    color=risk_color, weight='bold')
+                    color=stat_color, weight='bold')
         
-        # Section 3: Legend with thresholds (moved to bottom)
-        ax_info.text(0.5, 0.68, 'LEGEND', ha='center', va='top',
+        # Section 3: Legend with thresholds (more space, tighter spacing)
+        ax_info.text(0.05, 0.79, 'LEGEND', ha='left', va='top',
                     fontsize=11, weight='bold')
         
         # Legend title
         titles = {
-            'anomaly': 'Soil Moisture Difference\nfrom Normal (m³/m³)',
-            'percentage': 'Percentage Change\nfrom Normal (%)',
+            'anomaly': 'Soil Moisture Difference from Normal (m³/m³)',
+            'percentage': 'Percentage Change from Normal (%)',
             'absolute': 'Absolute Soil Moisture (m³/m³)'
         }
         
-        ax_info.text(0.5, 0.64, titles.get(analysis_type, 'Soil Moisture Analysis'),
-                    ha='center', va='top', fontsize=8, style='italic')
+        ax_info.text(0.05, 0.75, titles.get(analysis_type, 'Soil Moisture Analysis'),
+                    ha='left', va='top', fontsize=7, style='italic')
         
         # Legend categories with thresholds
         if analysis_type == 'anomaly':
@@ -536,30 +516,30 @@ class VisualizationProcessor:
                 ('Low', '#8B0000', '')
             ]
         
-        # Move legend down - use space from 0.60 to 0.12 (removed processing section)
-        y_positions = np.linspace(0.60, 0.12, len(legend_items))
+        # Tighter spacing for legend items
+        y_positions = np.linspace(0.71, 0.15, len(legend_items))
         
         for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
-            rect = plt.Rectangle((0.05, y_pos-0.012), 0.10, 0.020,
+            rect = plt.Rectangle((0.05, y_pos-0.010), 0.10, 0.018,
                                facecolor=color, edgecolor='black', linewidth=0.8)
             ax_info.add_patch(rect)
             
-            # Label with threshold
+            # Label with threshold (tighter spacing)
             if threshold:
                 ax_info.text(0.18, y_pos, label, va='center', ha='left', fontsize=8, weight='bold')
-                ax_info.text(0.18, y_pos-0.015, threshold, va='top', ha='left', 
+                ax_info.text(0.18, y_pos-0.012, threshold, va='top', ha='left', 
                            fontsize=6, style='italic', color='gray')
             else:
                 ax_info.text(0.18, y_pos, label, va='center', ha='left', fontsize=9)
         
-        # Attribution (bottom) - removed processing section
+        # Attribution (bottom)
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
-        ax_info.text(0.5, 0.06, 'GENERATED', ha='center', va='top',
+        ax_info.text(0.5, 0.08, 'GENERATED', ha='center', va='top',
                     fontsize=9, weight='bold')
-        ax_info.text(0.5, 0.03, timestamp, ha='center', va='top', 
+        ax_info.text(0.5, 0.05, timestamp, ha='center', va='top', 
                     fontsize=7, style='italic')
-        ax_info.text(0.5, 0.01, 'Analysis by Yieldera Platform', ha='center', va='top',
+        ax_info.text(0.5, 0.02, 'Analysis by Yieldera Platform', ha='center', va='top',
                     fontsize=7, style='italic')
     
     def add_north_arrow(self, ax, extent: List[float]):
