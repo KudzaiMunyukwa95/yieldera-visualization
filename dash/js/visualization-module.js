@@ -10,7 +10,8 @@ const VisualizationModule = (function () {
         selectedCategory: '',
         selectedRegionId: null,
         status: 'idle', // idle, polling, completed, failed
-        jobId: null
+        jobId: null,
+        currentImage: null
     };
 
     // DOM Elements
@@ -227,14 +228,25 @@ const VisualizationModule = (function () {
         }
     }
 
+    function downloadImage() {
+        if (!state.currentImage) return;
+        const link = document.createElement('a');
+        link.href = `data:image/png;base64,${state.currentImage}`;
+        link.download = `yieldera_analysis_${state.jobId || new Date().toISOString().slice(0, 10)}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     function renderResults(data) {
+        state.currentImage = data.image_data;
         elements.resultsPanel.innerHTML = `
-            <div class="result-card bg-white dark:bg-secondary-light rounded-lg shadow-lg overflow-hidden">
+            <div class="result-card bg-white dark:bg-secondary-light rounded-lg shadow-lg">
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="font-bold text-lg dark:text-white">Analysis Results</h3>
                 </div>
                 <div class="p-4">
-                    <img src="data:image/png;base64,${data.image_data}" class="w-full rounded mb-4 shadow" />
+                    <img src="data:image/png;base64,${data.image_data}" class="w-full h-auto object-contain rounded mb-4 shadow" style="max-height: none;" />
                     
                     <div class="stats-grid grid grid-cols-2 gap-4 mb-4">
                         <div class="stat-box p-3 bg-gray-50 dark:bg-secondary rounded">
@@ -248,11 +260,8 @@ const VisualizationModule = (function () {
                     </div>
 
                     <div class="flex gap-2">
-                        <button class="flex-1 bg-primary text-secondary py-2 rounded hover:bg-primary-light transition" onclick="VisualizationModule.exportMap('png')">
-                            <i class="fas fa-download mr-1"></i> PNG
-                        </button>
-                         <button class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 transition" onclick="VisualizationModule.exportMap('pdf')">
-                            <i class="fas fa-file-pdf mr-1"></i> PDF
+                        <button class="flex-1 bg-primary text-secondary py-2 rounded hover:bg-primary-light transition font-bold" onclick="VisualizationModule.downloadImage()">
+                            <i class="fas fa-download mr-1"></i> Download Map Image
                         </button>
                     </div>
                 </div>
@@ -311,7 +320,8 @@ const VisualizationModule = (function () {
     // Public API
     return {
         init: init,
-        exportMap: exportMap
+        exportMap: exportMap,
+        downloadImage: downloadImage
     };
 })();
 
