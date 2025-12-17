@@ -213,7 +213,7 @@ const VisualizationModule = (function () {
             } catch (e) {
                 console.error('Polling error', e);
             }
-        }, 5000);
+        }, 2000);
     }
 
     async function fetchResults(jobId) {
