@@ -516,8 +516,8 @@ class VisualizationProcessor:
                 ('Low', '#8B0000', '')
             ]
         
-        # Tighter spacing for legend items
-        y_positions = np.linspace(0.71, 0.15, len(legend_items))
+        # Even tighter spacing for legend items to prevent collisions
+        y_positions = np.linspace(0.68, 0.18, len(legend_items))
         
         for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
