@@ -468,25 +468,25 @@ class VisualizationProcessor:
         
         from matplotlib.patches import FancyBboxPatch
         
-        # Statistics box (moved down to avoid overlap with Data Source)
-        # Top was ~0.92 (0.83+0.09). Moving down to top ~0.88.
-        stats_box = FancyBboxPatch((0.05, 0.79), 0.9, 0.09, 
+        # Statistics box (moved down further to fix collision with Data Source)
+        # Top was 0.88. Moving down to top 0.84 to give clear gap.
+        stats_box = FancyBboxPatch((0.05, 0.75), 0.9, 0.09, 
                                    boxstyle="round,pad=0.01", 
                                    edgecolor='black', facecolor='#f0f0f0', 
                                    linewidth=1.5)
         ax_info.add_patch(stats_box)
         
-        ax_info.text(0.5, 0.865, 'REGIONAL STATISTICS', ha='center', va='top',
+        ax_info.text(0.5, 0.825, 'REGIONAL STATISTICS', ha='center', va='top',
                     fontsize=10, weight='bold')
         
-        ax_info.text(0.5, 0.83, f"Mean: {mean_anomaly:.3f} m³/m³", 
+        ax_info.text(0.5, 0.79, f"Mean: {mean_anomaly:.3f} m³/m³", 
                     ha='center', va='top', fontsize=10, weight='bold')
-        ax_info.text(0.5, 0.80, f"Change: {percentage:+.1f}% from normal", 
+        ax_info.text(0.5, 0.76, f"Change: {percentage:+.1f}% from normal", 
                     ha='center', va='top', fontsize=9,
                     color=stat_color, weight='bold')
         
         # Section 3: Legend with thresholds (moved down)
-        ax_info.text(0.05, 0.75, 'LEGEND', ha='left', va='top',
+        ax_info.text(0.05, 0.71, 'LEGEND', ha='left', va='top',
                     fontsize=11, weight='bold')
         
         # Legend title
@@ -496,7 +496,7 @@ class VisualizationProcessor:
             'absolute': 'Absolute Soil Moisture (m³/m³)'
         }
         
-        ax_info.text(0.05, 0.71, titles.get(analysis_type, 'Soil Moisture Analysis'),
+        ax_info.text(0.05, 0.67, titles.get(analysis_type, 'Soil Moisture Analysis'),
                     ha='left', va='top', fontsize=7, style='italic')
         
         # Legend categories with thresholds
@@ -520,7 +520,7 @@ class VisualizationProcessor:
             ]
         
         # Legend positioning adjusted down
-        y_positions = np.linspace(0.65, 0.22, len(legend_items))
+        y_positions = np.linspace(0.62, 0.19, len(legend_items))
         
         for (label, color, threshold), y_pos in zip(legend_items, y_positions):
             # Color patch
@@ -538,11 +538,11 @@ class VisualizationProcessor:
         
         # Attribution (bottom) - moved down to avoid collision
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
-        ax_info.text(0.5, 0.16, 'GENERATED', ha='center', va='top',
+        ax_info.text(0.5, 0.14, 'GENERATED', ha='center', va='top',
                     fontsize=9, weight='bold')
-        ax_info.text(0.5, 0.12, timestamp, ha='center', va='top', 
+        ax_info.text(0.5, 0.11, timestamp, ha='center', va='top', 
                     fontsize=7, style='italic')
-        ax_info.text(0.5, 0.09, 'Analysis by Yieldera Platform', ha='center', va='top',
+        ax_info.text(0.5, 0.08, 'Analysis by Yieldera Platform', ha='center', va='top',
                     fontsize=7, style='italic')
     
     def add_north_arrow(self, ax, extent: List[float]):
