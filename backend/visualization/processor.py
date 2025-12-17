@@ -296,28 +296,36 @@ class VisualizationProcessor:
     def generate_cartography(self, data: np.ndarray, extent: List[float], 
                            region_name: str, start_date: str, end_date: str,
                            statistics: Dict, analysis_type: str) -> Dict:
-        """Generate professional cartographic visualization"""
+        """Generate professional cartographic visualization with two-panel layout"""
         
         try:
             # Set up professional styling
             plt.style.use('default')
-            fig = plt.figure(figsize=(12, 10), dpi=300, facecolor='white')
+            fig = plt.figure(figsize=(16, 10), dpi=300, facecolor='white')
             
-            # Create map projection
+            # Create two-panel layout: Map (70%) + Info Sidebar (30%)
+            from matplotlib.gridspec import GridSpec
+            gs = GridSpec(1, 2, figure=fig, width_ratios=[7, 3], wspace=0.02)
+            
+            # Map panel (left)
             proj = ccrs.PlateCarree()
-            ax = fig.add_subplot(111, projection=proj)
+            ax_map = fig.add_subplot(gs[0], projection=proj)
+            
+            # Information sidebar (right)
+            ax_info = fig.add_subplot(gs[1])
+            ax_info.axis('off')
             
             # Set map extent
-            ax.set_extent(extent, crs=ccrs.PlateCarree())
+            ax_map.set_extent(extent, crs=ccrs.PlateCarree())
             
-            # Add base features
-            self.add_base_features(ax)
+            # Add base features to map
+            self.add_base_features(ax_map)
             
             # Create color scheme
             cmap, norm = self.create_color_scheme(analysis_type)
             
-            # Plot the data
-            im = ax.imshow(data, 
+            # Plot the data on map
+            im = ax_map.imshow(data, 
                           extent=extent,
                           transform=ccrs.PlateCarree(),
                           cmap=cmap,
@@ -325,12 +333,16 @@ class VisualizationProcessor:
                           alpha=0.8,
                           interpolation='nearest')
             
-            # Add cartographic elements
-            self.add_title_block(fig, region_name, start_date, end_date, statistics, analysis_type)
-            self.add_legend(fig, cmap, norm, analysis_type)
-            self.add_north_arrow(ax, extent)
-            self.add_scale_bar(ax, extent)
-            self.add_attribution(fig)
+            # Add map title (only element on map besides the data)
+            self.add_map_title(ax_map, region_name, start_date, end_date)
+            
+            # Add cartographic elements to map
+            self.add_north_arrow(ax_map, extent)
+            self.add_scale_bar(ax_map, extent)
+            
+            # Add all information to sidebar
+            self.add_information_sidebar(ax_info, region_name, start_date, end_date, 
+                                        statistics, analysis_type, cmap, norm)
             
             # Save to buffer
             buffer = io.BytesIO()
@@ -413,9 +425,8 @@ class VisualizationProcessor:
         gl.xformatter = LONGITUDE_FORMATTER
         gl.yformatter = LATITUDE_FORMATTER
     
-    def add_title_block(self, fig, region_name: str, start_date: str, end_date: str, 
-                       statistics: Dict, analysis_type: str):
-        """Add professional title block"""
+    def add_map_title(self, ax_map, region_name: str, start_date: str, end_date: str):
+        """Add clean title above map"""
         
         # Format date range
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
@@ -429,42 +440,57 @@ class VisualizationProcessor:
         else:
             date_str = f"{start_dt.strftime('%b %d, %Y')} to {end_dt.strftime('%b %d, %Y')}"
         
-        # Main title
-        title = f"{region_name} Soil Moisture Anomaly – {date_str}"
-        fig.suptitle(title, fontsize=16, fontweight='bold', y=0.95, ha='center')
-        
-        # Data source subtitle
-        fig.text(0.5, 0.92, "Data: ERA5-Land satellite observations (0-7cm soil layer)",
-                ha='center', fontsize=12, style='italic')
-        
-        # Processing info
-        fig.text(0.5, 0.89, "Processing: GEE | Visualization: Yieldera Platform",
-                ha='center', fontsize=11)
-        
-        # Statistics summary
-        percentage = statistics.get('percentage_change', 0)
-        stats_text = f"Regional Average: {statistics.get('mean_anomaly', 0):.3f} m³/m³ ({percentage:+.1f}% from normal)"
-        fig.text(0.5, 0.86, stats_text,
-                ha='center', fontsize=11, weight='bold',
-                bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgray', alpha=0.8))
+        # Main title - only element above map
+        title = f"{region_name} (Complete Country) Soil Moisture Anomaly – {date_str}"
+        ax_map.set_title(title, fontsize=14, fontweight='bold', pad=15)
     
-    def add_legend(self, fig, cmap, norm, analysis_type: str):
-        """Add professional legend"""
+    def add_information_sidebar(self, ax_info, region_name: str, start_date: str, 
+                               end_date: str, statistics: Dict, analysis_type: str,
+                               cmap, norm):
+        """Add organized information sidebar with all metadata"""
         
-        legend_ax = fig.add_axes([0.02, 0.02, 0.35, 0.25])
-        legend_ax.set_xlim(0, 1)
-        legend_ax.set_ylim(0, 1)
-        legend_ax.axis('off')
+        ax_info.set_xlim(0, 1)
+        ax_info.set_ylim(0, 1)
+        
+        # Section 1: Data Source Header (top)
+        ax_info.text(0.5, 0.98, 'DATA SOURCE', ha='center', va='top', 
+                    fontsize=11, weight='bold', style='italic')
+        ax_info.text(0.5, 0.94, 'ERA5-Land Satellite\nObservations\n(0-7cm soil layer)', 
+                    ha='center', va='top', fontsize=9, style='italic')
+        
+        # Section 2: Regional Statistics Box
+        from matplotlib.patches import FancyBboxPatch
+        stats_box = FancyBboxPatch((0.05, 0.78), 0.9, 0.13, 
+                                   boxstyle="round,pad=0.01", 
+                                   edgecolor='black', facecolor='#f0f0f0', 
+                                   linewidth=1.5)
+        ax_info.add_patch(stats_box)
+        
+        ax_info.text(0.5, 0.88, 'REGIONAL STATISTICS', ha='center', va='top',
+                    fontsize=10, weight='bold')
+        
+        percentage = statistics.get('percentage_change', 0)
+        mean_anomaly = statistics.get('mean_anomaly', 0)
+        
+        ax_info.text(0.5, 0.845, f"Mean: {mean_anomaly:.3f} m³/m³", 
+                    ha='center', va='top', fontsize=10, weight='bold')
+        ax_info.text(0.5, 0.81, f"Change: {percentage:+.1f}% from normal", 
+                    ha='center', va='top', fontsize=9,
+                    color='red' if percentage < 0 else 'blue')
+        
+        # Section 3: Legend (largest section)
+        ax_info.text(0.5, 0.74, 'LEGEND', ha='center', va='top',
+                    fontsize=11, weight='bold')
         
         # Legend title
         titles = {
-            'anomaly': 'Soil Moisture Difference from Normal (m³/m³)',
-            'percentage': 'Percentage Change from Normal (%)',
+            'anomaly': 'Soil Moisture Difference\nfrom Normal (m³/m³)',
+            'percentage': 'Percentage Change\nfrom Normal (%)',
             'absolute': 'Absolute Soil Moisture (m³/m³)'
         }
         
-        legend_ax.text(0.5, 0.95, titles.get(analysis_type, 'Soil Moisture Analysis'),
-                      ha='center', va='top', fontsize=11, weight='bold')
+        ax_info.text(0.5, 0.70, titles.get(analysis_type, 'Soil Moisture Analysis'),
+                    ha='center', va='top', fontsize=8, style='italic')
         
         # Legend categories
         if analysis_type == 'anomaly':
@@ -486,16 +512,31 @@ class VisualizationProcessor:
                 ('Low', '#8B0000')
             ]
         
-        y_positions = np.linspace(0.85, 0.15, len(legend_items))
+        y_positions = np.linspace(0.64, 0.28, len(legend_items))
         
         for (label, color), y_pos in zip(legend_items, y_positions):
             # Color patch
-            rect = plt.Rectangle((0.05, y_pos-0.03), 0.08, 0.05,
-                               facecolor=color, edgecolor='black', linewidth=0.5)
-            legend_ax.add_patch(rect)
+            rect = plt.Rectangle((0.08, y_pos-0.015), 0.12, 0.025,
+                               facecolor=color, edgecolor='black', linewidth=0.8)
+            ax_info.add_patch(rect)
             
             # Label
-            legend_ax.text(0.18, y_pos, label, va='center', ha='left', fontsize=9)
+            ax_info.text(0.25, y_pos, label, va='center', ha='left', fontsize=9)
+        
+        # Section 4: Processing Information
+        ax_info.text(0.5, 0.22, 'PROCESSING', ha='center', va='top',
+                    fontsize=10, weight='bold')
+        ax_info.text(0.5, 0.18, 'Google Earth Engine', ha='center', va='top', fontsize=8)
+        ax_info.text(0.5, 0.15, 'Yieldera Platform', ha='center', va='top', fontsize=8)
+        
+        # Section 5: Attribution (bottom)
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
+        ax_info.text(0.5, 0.08, 'GENERATED', ha='center', va='top',
+                    fontsize=9, weight='bold')
+        ax_info.text(0.5, 0.05, timestamp, ha='center', va='top', 
+                    fontsize=7, style='italic')
+        ax_info.text(0.5, 0.02, 'Analysis by Yieldera Platform', ha='center', va='top',
+                    fontsize=7, style='italic')
     
     def add_north_arrow(self, ax, extent: List[float]):
         """Add north arrow"""
@@ -520,12 +561,7 @@ class VisualizationProcessor:
             # If matplotlib-scalebar not available, skip scale bar
             pass
     
-    def add_attribution(self, fig):
-        """Add attribution block"""
-        
-        attribution = f"Analysis by Yieldera Platform | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
-        fig.text(0.99, 0.01, attribution, ha='right', va='bottom', fontsize=8, style='italic',
-                bbox=dict(boxstyle="round,pad=0.3", facecolor='white', alpha=0.9))
+
     
     def save_outputs(self, job_id: str, map_result: Dict, gee_result: Dict) -> Dict:
         """Save visualization outputs to storage"""
