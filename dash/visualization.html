@@ -372,18 +372,15 @@
 
             </div>
 
-            <!-- Results Column -->
-            <div class="results-column lg:col-span-3 flex flex-col">
-              <div id="resultsPanel" style="display:none;" class="flex-1 pr-2">
-                <!-- Results injected by JS -->
-              </div>
-
-              <!-- Empty State -->
-              <div id="vizEmptyState"
-                class="min-h-[600px] flex flex-col items-center justify-center p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                <i class="fas fa-map w-16 h-16 mb-4 opacity-50"></i>
-                <h4 class="text-xl font-medium mb-2">No Analysis Generated</h4>
-                <p class="max-w-xs">Select a region and settings on the left to generate your satellite risk assessment.
+            <!-- Results Sidebar (Placeholder) -->
+            <div class="results-column lg:col-span-3 flex flex-col h-full">
+              <!-- Persistent Empty State / Placeholder -->
+              <div id="vizPlaceholder"
+                class="h-full flex flex-col items-center justify-center p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-secondary-light/50">
+                <i class="fas fa-satellite-dish w-16 h-16 mb-4 opacity-30 animate-pulse"></i>
+                <h4 class="text-xl font-medium mb-2">Ready to Analyze</h4>
+                <p class="max-w-xs opacity-70">
+                  Configure your parameters on the left and click "Generate Analysis" to view the full-screen report.
                 </p>
               </div>
             </div>
@@ -394,6 +391,45 @@
 
     </main>
 
+  </div>
+
+  <!-- Full Screen Result Modal -->
+  <div id="resultModal" class="fixed inset-0 z-50 forbidden hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black bg-opacity-80 transition-opacity backdrop-blur-sm" id="modalBackdrop"></div>
+
+    <!-- Modal Content -->
+    <div class="fixed inset-0 z-10 overflow-y-auto w-full h-full p-4 md:p-6 flex items-center justify-center">
+      <!-- Close Button (Top Right Fixed) -->
+      <button id="closeModalBtn"
+        class="fixed top-6 right-6 z-50 text-white hover:text-gray-300 focus:outline-none transition-colors">
+        <i class="fas fa-times text-4xl shadow-lg"></i>
+      </button>
+
+      <!-- Card Container -->
+      <div
+        class="bg-white dark:bg-secondary w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden transform transition-all relative flex flex-col max-h-full">
+
+        <!-- Modal Header -->
+        <div
+          class="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-secondary-dark/50">
+          <div>
+            <h3 class="text-2xl font-bold dark:text-white flex items-center">
+              <i class="fas fa-satellite text-primary mr-3"></i>
+              Analysis Results
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Generated Satellite Risk Assessment</p>
+          </div>
+          <!-- Download Action (Placeholder for specific button if needed in header) -->
+        </div>
+
+        <!-- Scrollable Body -->
+        <div id="resultModalContent" class="p-6 md:p-8 overflow-y-auto flex-1 bg-gray-100 dark:bg-secondary-light/30">
+          <!-- Dynamic Content Injected Here -->
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- Notification System -->

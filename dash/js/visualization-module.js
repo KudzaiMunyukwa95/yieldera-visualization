@@ -23,8 +23,15 @@ const VisualizationModule = (function () {
         baselinePeriod: null,
         customBaselineGroup: null,
         generateBtn: null,
+        generateBtn: null,
         resultsPanel: null,
-        progressPanel: null
+        progressPanel: null,
+
+        // Modal Elements
+        resultModal: null,
+        resultModalContent: null,
+        closeModalBtn: null,
+        modalBackdrop: null
     };
 
     // API Configuration
@@ -60,8 +67,13 @@ const VisualizationModule = (function () {
         elements.customBaselineGroup = document.getElementById('customBaselineGroup');
 
         elements.generateBtn = document.getElementById('generateVisualization');
-        elements.resultsPanel = document.getElementById('resultsPanel');
-        elements.vizEmptyState = document.getElementById('vizEmptyState');
+
+        // Modal Elements
+        elements.resultModal = document.getElementById('resultModal');
+        elements.resultModalContent = document.getElementById('resultModalContent');
+        elements.closeModalBtn = document.getElementById('closeModalBtn');
+        elements.modalBackdrop = document.getElementById('modalBackdrop');
+
         elements.progressPanel = document.getElementById('progressPanel');
         elements.errorPanel = document.getElementById('errorPanel');
     }
@@ -85,6 +97,14 @@ const VisualizationModule = (function () {
 
         // Generate Button
         elements.generateBtn.addEventListener('click', handleGenerate);
+
+        // Modal Events
+        if (elements.closeModalBtn) {
+            elements.closeModalBtn.addEventListener('click', closeModal);
+        }
+        if (elements.modalBackdrop) {
+            elements.modalBackdrop.addEventListener('click', closeModal);
+        }
     }
 
     async function fetchRegions() {
@@ -242,36 +262,33 @@ const VisualizationModule = (function () {
 
     function renderResults(data) {
         state.currentImage = data.image_data;
-        elements.resultsPanel.innerHTML = `
-            <div class="result-card bg-white dark:bg-secondary-light rounded-lg shadow-lg">
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="font-bold text-lg dark:text-white">Analysis Results</h3>
-                </div>
-                <div class="p-4">
-                    <img src="data:image/png;base64,${data.image_data}" class="w-full h-auto object-contain rounded mb-4 shadow" style="max-height: none;" />
+
+        elements.resultModalContent.innerHTML = `
+            <div class="result-card bg-transparent">
+                <div class="p-0">
+                    <img src="data:image/png;base64,${data.image_data}" class="w-full h-auto object-contain rounded mb-6 shadow-sm" style="max-height: none;" />
                     
-                    <div class="stats-grid grid grid-cols-2 gap-4 mb-4">
-                        <div class="stat-box p-3 bg-gray-50 dark:bg-secondary rounded">
-                            <div class="text-xs text-gray-500">Mean Anomaly</div>
-                            <div class="text-lg font-bold">${data.statistics?.mean_anomaly?.toFixed(3) || 'N/A'}</div>
+                    <div class="stats-grid grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="stat-box p-4 bg-white dark:bg-secondary rounded border border-gray-200 dark:border-gray-600">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide">Mean Anomaly</div>
+                            <div class="text-2xl font-bold">${data.statistics?.mean_anomaly?.toFixed(3) || 'N/A'}</div>
                         </div>
-                         <div class="stat-box p-3 bg-gray-50 dark:bg-secondary rounded">
-                            <div class="text-xs text-gray-500">Max Anomaly</div>
-                            <div class="text-lg font-bold">${data.statistics?.max_anomaly?.toFixed(3) || 'N/A'}</div>
+                         <div class="stat-box p-4 bg-white dark:bg-secondary rounded border border-gray-200 dark:border-gray-600">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide">Max Anomaly</div>
+                            <div class="text-2xl font-bold">${data.statistics?.max_anomaly?.toFixed(3) || 'N/A'}</div>
                         </div>
                     </div>
 
-                    <div class="flex gap-2">
-                        <button class="flex-1 bg-primary text-secondary py-2 rounded hover:bg-primary-light transition font-bold" onclick="VisualizationModule.downloadImage()">
-                            <i class="fas fa-download mr-1"></i> Download Map Image
+                    <div class="flex gap-4 justify-center">
+                        <button class="w-full md:w-auto px-8 bg-primary text-secondary py-3 rounded-lg hover:bg-primary-light transition font-bold shadow-lg transform hover:scale-105" onclick="VisualizationModule.downloadImage()">
+                            <i class="fas fa-download mr-2"></i> Download Full Resolution Map
                         </button>
                     </div>
                 </div>
             </div>
         `;
 
-        elements.resultsPanel.style.display = 'block';
-        if (elements.vizEmptyState) elements.vizEmptyState.style.display = 'none';
+        showModal();
     }
 
     // Export Helper (Public)
@@ -298,8 +315,9 @@ const VisualizationModule = (function () {
 
     // UI Helpers
     function resetUI() {
-        elements.resultsPanel.style.display = 'none';
-        if (elements.vizEmptyState) elements.vizEmptyState.style.display = 'flex';
+        // elements.resultsPanel.style.display = 'none'; // Removed inline panel
+        // if (elements.vizEmptyState) elements.vizEmptyState.style.display = 'flex';
+        closeModal();
         elements.errorPanel.style.display = 'none';
     }
 
@@ -320,6 +338,17 @@ const VisualizationModule = (function () {
     function showError(msg) {
         elements.errorPanel.textContent = msg;
         elements.errorPanel.style.display = 'block';
+    }
+
+    // Modal Helpers
+    function showModal() {
+        elements.resultModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeModal() {
+        elements.resultModal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
     }
 
     // Public API
