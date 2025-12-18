@@ -34,6 +34,7 @@ const VisualizationModule = (function () {
     // Initialize Module
     function init() {
         console.log('Initializing Visualization Module...');
+        console.log('API Base URL:', API_BASE);
         cacheDOM();
         bindEvents();
         fetchRegions();
