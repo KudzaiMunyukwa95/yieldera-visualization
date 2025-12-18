@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
     'pricing.html': 'pricing',
     'alerts.html': 'alerts',
     'settings.html': 'settings',
-    'visualization.html': 'visualization'
+    'visualization.html': 'visualization',
+    'visualization': 'visualization',
+    'data.html': 'data',
+    'data': 'data'
   };
 
   const navMapping = {
@@ -29,7 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
     'pricing': 'a[href="pricing.html"]',
     'alerts': 'a[href="alerts.html"]',
     'settings': 'a[href="settings.html"]',
-    'visualization': 'a[href="visualization.html"]'
+    'visualization': 'a[href="visualization"]',
+    'data': 'a[href="data"]'
   };
 
   function highlightCurrentPage() {

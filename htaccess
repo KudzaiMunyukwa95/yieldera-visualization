@@ -1,0 +1,131 @@
+# =========================================================
+# 🌾 YIELDERA FRONTEND CONFIGURATION (Final Version)
+# =========================================================
+
+# ---------------------------
+# 1️⃣ PRIVATE DIRECTORY PROTECTION
+# ---------------------------
+<Files "private/*">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+RedirectMatch 404 ^/private/.*$
+
+# ---------------------------
+# 2️⃣ SECURITY HEADERS
+# ---------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+<FilesMatch "\.(csv|json|log|htaccess|env)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# ---------------------------
+# 3️⃣ ENABLE REWRITE ENGINE
+# ---------------------------
+RewriteEngine On
+
+# Optional: Force HTTPS
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# =========================================================
+# 4️⃣ EXCLUSIONS - APIs, ASSETS, AND STATIC FILES
+# =========================================================
+RewriteRule ^api/ - [L]
+RewriteRule ^dashboard/api/ - [L]
+RewriteRule ^(assets|css|js|images|fonts|uploads|downloads)/ - [L]
+RewriteRule \.(php|css|js|png|jpg|jpeg|gif|svg|ico|pdf|zip|csv|json|xml|txt|woff|woff2|ttf|eot)$ - [L]
+
+# =========================================================
+# 5️⃣ 301 REDIRECTS - OLD URLs ➜ CLEAN URLs
+# =========================================================
+RewriteCond %{THE_REQUEST} \s/+login\.html[\s?] [NC]
+RewriteRule ^login\.html$ /login [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/dashboard\.html[\s?] [NC]
+RewriteRule ^dashboard/dashboard\.html$ /dashboard [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/field_management\.html[\s?] [NC]
+RewriteRule ^dashboard/field_management\.html$ /fields [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/weather\.html[\s?] [NC]
+RewriteRule ^dashboard/weather\.html$ /weather [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/alerts\.html[\s?] [NC]
+RewriteRule ^dashboard/alerts\.html$ /alerts [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/settings\.html[\s?] [NC]
+RewriteRule ^dashboard/settings\.html$ /settings [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/define_field\.html[\s?] [NC]
+RewriteRule ^dashboard/define_field\.html$ /define-field [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/estimator\.html[\s?] [NC]
+RewriteRule ^dashboard/estimator\.html$ /estimator [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/wrsi\.html[\s?] [NC]
+RewriteRule ^dashboard/wrsi\.html$ /wrsi [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/pricing\.html[\s?] [NC]
+RewriteRule ^dashboard/pricing\.html$ /pricing [R=301,L]
+
+# ✅ Frost redirect
+RewriteCond %{THE_REQUEST} \s/+dashboard/frost\.html[\s?] [NC]
+RewriteRule ^dashboard/frost\.html$ /frost [R=301,L]
+
+# ✅ Map redirect
+RewriteCond %{THE_REQUEST} \s/+dashboard/map\.html[\s?] [NC]
+RewriteRule ^dashboard/map\.html$ /map [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+admin/users\.html[\s?] [NC]
+RewriteRule ^admin/users\.html$ /users [R=301,L]
+
+# =========================================================
+# 6️⃣ CLEAN URL REWRITES (Internal Mappings)
+# =========================================================
+RewriteRule ^login/?$ login.html [L]
+RewriteRule ^dashboard/?$ dashboard/dashboard.html [L]
+RewriteRule ^fields/?$ dashboard/field_management.html [L]
+RewriteRule ^weather/?$ dashboard/weather.html [L]
+RewriteRule ^alerts/?$ dashboard/alerts.html [L]
+RewriteRule ^settings/?$ dashboard/settings.html [L]
+RewriteRule ^define-field/?$ dashboard/define_field.html [L]
+RewriteRule ^estimator/?$ dashboard/estimator.html [L]
+RewriteRule ^wrsi/?$ dashboard/wrsi.html [L]
+RewriteRule ^pricing/?$ dashboard/pricing.html [L]
+RewriteRule ^frost/?$ dashboard/frost.html [L]
+# ✅ New clean mapping
+RewriteRule ^map/?$ dashboard/map.html [L]
+RewriteRule ^users/?$ admin/users.html [L]
+
+# ✅ Clean URL Redirects (Visualization & Data)
+RewriteCond %{THE_REQUEST} \s/+dashboard/visualization\.html[\s?] [NC]
+RewriteRule ^dashboard/visualization\.html$ /dashboard/visualization [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+dashboard/data\.html[\s?] [NC]
+RewriteRule ^dashboard/data\.html$ /dashboard/data [R=301,L]
+
+# ✅ Clean URL Mappings (Visualization & Data)
+RewriteRule ^dashboard/visualization/?$ dashboard/visualization.html [L]
+RewriteRule ^dashboard/data/?$ dashboard/data.html [L]
+
+# Optional generic fallback (disabled by default)
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteRule ^([a-z0-9-]+)/?$ dashboard/$1.html [L]
+
+# =========================================================
+# 7️⃣ FALLBACK HANDLER
+# =========================================================
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^.*$ /404.html [L]
