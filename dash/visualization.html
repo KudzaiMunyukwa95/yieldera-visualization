@@ -262,7 +262,7 @@
 
       <!-- Visualization Module Container -->
       <div
-        class="visualization-module-container w-full h-full bg-white dark:bg-secondary rounded-xl shadow-lg overflow-hidden flex flex-col">
+        class="visualization-module-container w-full min-h-full bg-white dark:bg-secondary rounded-xl shadow-lg flex flex-col">
 
         <!-- Header -->
         <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-secondary text-white flex-shrink-0">
@@ -277,8 +277,8 @@
           </div>
         </div>
 
-        <div class="p-6 flex-1 overflow-hidden">
-          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full">
+        <div class="p-6 flex-1">
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
             <!-- Controls Column -->
             <div class="viz-controls lg:col-span-1 space-y-6 overflow-y-auto pr-2">
@@ -373,14 +373,14 @@
             </div>
 
             <!-- Results Column -->
-            <div class="results-column lg:col-span-3 h-full flex flex-col">
-              <div id="resultsPanel" style="display:none;" class="flex-1 overflow-y-auto pr-2 min-h-0">
+            <div class="results-column lg:col-span-3 flex flex-col">
+              <div id="resultsPanel" style="display:none;" class="flex-1 pr-2">
                 <!-- Results injected by JS -->
               </div>
 
               <!-- Empty State -->
               <div id="vizEmptyState"
-                class="h-full flex flex-col items-center justify-center p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                class="min-h-[600px] flex flex-col items-center justify-center p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
                 <i class="fas fa-map w-16 h-16 mb-4 opacity-50"></i>
                 <h4 class="text-xl font-medium mb-2">No Analysis Generated</h4>
                 <p class="max-w-xs">Select a region and settings on the left to generate your satellite risk assessment.
