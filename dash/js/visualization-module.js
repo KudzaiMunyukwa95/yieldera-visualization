@@ -23,7 +23,7 @@ const VisualizationModule = (function () {
         baselinePeriod: null,
         customBaselineGroup: null,
         generateBtn: null,
-        generateBtn: null,
+
         resultsPanel: null,
         progressPanel: null,
 
