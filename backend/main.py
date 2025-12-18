@@ -47,7 +47,12 @@ app = FastAPI(
 # CORS middleware for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure based on your frontend domain
+    allow_origins=[
+        "https://yieldera.co.zw",
+        "https://www.yieldera.co.zw",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
