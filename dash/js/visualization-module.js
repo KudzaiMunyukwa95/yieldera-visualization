@@ -269,7 +269,7 @@ const VisualizationModule = (function () {
                 </div>
             </div>
         `;
-        `;
+
         elements.resultsPanel.style.display = 'block';
         if (elements.vizEmptyState) elements.vizEmptyState.style.display = 'none';
     }
@@ -279,56 +279,56 @@ const VisualizationModule = (function () {
         if (!state.jobId) return;
 
         // Use a hidden form or fetch blob to download
-        fetch(`${ API_BASE }/export`, {
-        method: 'POST',
+        fetch(`${API_BASE}/export`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: state.jobId, format: format })
-    })
+            body: JSON.stringify({ job_id: state.jobId, format: format })
+        })
             .then(response => response.blob())
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `analysis_${state.jobId}.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    });
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analysis_${state.jobId}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            });
     }
 
-// UI Helpers
-function resetUI() {
-    elements.resultsPanel.style.display = 'none';
-    if (elements.vizEmptyState) elements.vizEmptyState.style.display = 'flex';
-    elements.errorPanel.style.display = 'none';
-}
-
-function showProgress(show, message) {
-    elements.progressPanel.style.display = show ? 'block' : 'none';
-    if (show && message) {
-        elements.progressPanel.querySelector('.progress-message').textContent = message;
+    // UI Helpers
+    function resetUI() {
+        elements.resultsPanel.style.display = 'none';
+        if (elements.vizEmptyState) elements.vizEmptyState.style.display = 'flex';
+        elements.errorPanel.style.display = 'none';
     }
-}
 
-function updateProgress(percent, message) {
-    const bar = elements.progressPanel.querySelector('.progress-bar-fill');
-    const text = elements.progressPanel.querySelector('.progress-message');
-    if (bar) bar.style.width = `${percent}%`;
-    if (text) text.textContent = `${percent}% - ${message}`;
-}
+    function showProgress(show, message) {
+        elements.progressPanel.style.display = show ? 'block' : 'none';
+        if (show && message) {
+            elements.progressPanel.querySelector('.progress-message').textContent = message;
+        }
+    }
 
-function showError(msg) {
-    elements.errorPanel.textContent = msg;
-    elements.errorPanel.style.display = 'block';
-}
+    function updateProgress(percent, message) {
+        const bar = elements.progressPanel.querySelector('.progress-bar-fill');
+        const text = elements.progressPanel.querySelector('.progress-message');
+        if (bar) bar.style.width = `${percent}%`;
+        if (text) text.textContent = `${percent}% - ${message}`;
+    }
 
-// Public API
-return {
-    init: init,
-    exportMap: exportMap,
-    downloadImage: downloadImage
-};
-}) ();
+    function showError(msg) {
+        elements.errorPanel.textContent = msg;
+        elements.errorPanel.style.display = 'block';
+    }
+
+    // Public API
+    return {
+        init: init,
+        exportMap: exportMap,
+        downloadImage: downloadImage
+    };
+})();
 
 // Auto-init if DOM is ready, or wait
 document.addEventListener('DOMContentLoaded', () => {
