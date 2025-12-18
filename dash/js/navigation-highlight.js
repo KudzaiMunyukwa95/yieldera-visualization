@@ -3,7 +3,7 @@
  * Manages active navigation state
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const pageMapping = {
     'dashboard.html': 'dashboard',
     'field_management.html': 'fields',
@@ -14,9 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
     'map.html': 'map',
     'pricing.html': 'pricing',
     'alerts.html': 'alerts',
-    'settings.html': 'settings'
+    'settings.html': 'settings',
+    'visualization.html': 'visualization'
   };
-  
+
   const navMapping = {
     'dashboard': 'a[href="dashboard.html"]',
     'fields': 'a[href="field_management.html"]',
@@ -27,20 +28,21 @@ document.addEventListener('DOMContentLoaded', function() {
     'map': 'a[href="map.html"]',
     'pricing': 'a[href="pricing.html"]',
     'alerts': 'a[href="alerts.html"]',
-    'settings': 'a[href="settings.html"]'
+    'settings': 'a[href="settings.html"]',
+    'visualization': 'a[href="visualization.html"]'
   };
-  
+
   function highlightCurrentPage() {
     try {
       document.querySelectorAll('.sidebar-nav-item').forEach(item => {
         item.classList.remove('active');
       });
-      
+
       const path = window.location.pathname;
       const filename = path.split('/').pop() || 'dashboard.html';
       const currentPageKey = pageMapping[filename] || 'dashboard';
       const selector = navMapping[currentPageKey];
-      
+
       if (selector) {
         const navItem = document.querySelector(selector);
         if (navItem && navItem.classList.contains('sidebar-nav-item')) {
@@ -51,6 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('Navigation highlighting failed:', error);
     }
   }
-  
+
   highlightCurrentPage();
 });
