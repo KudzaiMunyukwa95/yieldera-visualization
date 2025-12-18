@@ -5,6 +5,8 @@ Handles GEE analysis and cartographic generation
 
 import ee
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import ListedColormap, BoundaryNorm
