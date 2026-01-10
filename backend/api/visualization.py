@@ -433,6 +433,21 @@ async def list_regions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list regions: {str(e)}")
 
+@router.get("/regions/{region_id}")
+async def get_region(region_id: str):
+    """
+    Get full details for a specific region, including geometry
+    """
+    try:
+        region = get_region_by_id(region_id)
+        if not region:
+            raise HTTPException(status_code=404, detail="Region not found")
+        return region
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get region: {str(e)}")
+
 # =====================================
 # UTILITY FUNCTIONS
 # =====================================
