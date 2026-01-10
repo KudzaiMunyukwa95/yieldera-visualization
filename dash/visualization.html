@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <base href="/dashboard/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yieldera - Weather Risk Map</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+
+  <!-- External CSS Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="css/tailwind-config.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/dashboard-styles.css">
+</head>
+
+<body class="bg-gray-100 flex flex-col h-screen">
+
+  <!-- Mobile Device Detection Overlay -->
+  <div id="mobileOverlay">
+    <div class="mobile-overlay-content">
+      <img src="https://yieldera.co.zw/assets/img/logo.svg" alt="Yieldera Logo" class="mobile-logo">
+      <h2 class="text-2xl font-bold mb-4">For the best experience, please use a desktop or laptop computer</h2>
+      <p class="mb-6">The Yieldera Dashboard is designed for larger screens to provide you with the most comprehensive
+        view of your field data.</p>
+      <div class="flex flex-col space-y-3">
+        <a href="https://yieldera.co.zw/dashboard/dashboard.html"
+          class="bg-primary text-secondary font-medium py-2 px-4 rounded">
+          <i class="fas fa-home mr-2"></i>Visit Homepage
+        </a>
+        <button id="continueAnyway" class="bg-transparent border border-white text-white font-medium py-2 px-4 rounded">
+          Continue Anyway (Not Recommended)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coming Soon Overlay -->
+  <div id="comingSoonOverlay" class="coming-soon-overlay hidden">
+    <div class="coming-soon-content">
+      <div class="text-6xl text-primary mb-4">
+        <i class="fas fa-cog fa-spin"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-secondary dark:text-white mb-2">Coming Soon</h3>
+      <p class="text-gray-600 dark:text-gray-300 mb-6" id="comingSoonMessage">This feature is currently under
+        development and will be available soon.</p>
+      <button id="closeComingSoon"
+        class="bg-primary text-secondary font-medium py-2 px-6 rounded hover:bg-primary-light">
+        <i class="fas fa-check mr-2"></i>Got it
+      </button>
+    </div>
+  </div>
+
+  <!-- Authentication & Theme Check Scripts -->
+  <script src="js/auth-check.js"></script>
+  <script src="js/theme-manager.js"></script>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 text-white">
+    <div class="bg-secondary-light p-6 rounded-lg flex flex-col items-center">
+      <div class="spinner mb-4"></div>
+      <div id="loadingMessage">Loading Yieldera Dashboard...</div>
+      <div class="w-full mt-2 bg-gray-700 h-1 rounded-full overflow-hidden">
+        <div id="loadingProgress" class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Index Loading Overlay -->
+  <div id="indexLoadingOverlay" class="index-loading-overlay">
+    <div class="index-loading-content">
+      <div class="spinner mb-4"></div>
+      <div id="indexLoadingMessage" class="text-center mb-2">Loading Index Data...</div>
+      <div class="text-xs text-gray-500 dark:text-gray-300">This may take a few moments</div>
+    </div>
+  </div>
+
+  <!-- Mobile Toggle Buttons -->
+  <button id="sidebarToggle"
+    class="md:hidden fixed top-4 left-4 z-40 bg-white dark:bg-secondary text-secondary dark:text-white p-2 rounded-full shadow-lg">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <button id="panelToggle"
+    class="md:hidden fixed top-4 right-4 z-40 bg-white dark:bg-secondary text-secondary dark:text-white p-2 rounded-full shadow-lg">
+    <i class="fas fa-chart-bar"></i>
+  </button>
+
+  <!-- Mobile Overlay Backgrounds -->
+  <div id="sidebarOverlay" class="sidebar-overlay md:hidden fixed inset-0 z-30 bg-black bg-opacity-50"></div>
+  <div id="panelOverlay" class="panel-overlay md:hidden fixed inset-0 z-30 bg-black bg-opacity-50"></div>
+
+  <!-- Main Layout Container -->
+  <div class="flex h-full">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="sidebar bg-secondary text-white w-60 md:w-64 flex-shrink-0 md:relative fixed inset-y-0 left-0 z-40 md:z-10 h-full md:transform-none">
+      <div class="flex flex-col h-full">
+        <!-- Logo -->
+        <div class="p-4 border-b border-secondary-light">
+          <img src="https://yieldera.co.zw/assets/img/logo.svg" alt="Yieldera Logo" class="h-8">
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-4">
+          <ul>
+            <li>
+              <a href="dashboard.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-chart-line w-6"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="field_management.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-map-marked-alt w-6"></i>
+                <span>Fields</span>
+              </a>
+            </li>
+            <li>
+              <a href="weather.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-cloud-sun w-6"></i>
+                <span>Weather</span>
+              </a>
+            </li>
+            <li>
+              <a href="estimator.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-seedling w-6"></i>
+                <span>Planting Estimator</span>
+              </a>
+            </li>
+            <li>
+              <a href="wrsi.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-tint w-6"></i>
+                <span>Drought Monitor</span>
+              </a>
+            </li>
+            <li>
+              <a href="visualization" class="sidebar-nav-item flex items-center px-4 py-3 text-white active">
+                <i class="fas fa-satellite w-6"></i>
+                <span>Weather Risk Map</span>
+              </a>
+            </li>
+
+            <li>
+              <a href="frost.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-snowflake w-6"></i>
+                <span>Frost Monitor</span>
+              </a>
+            </li>
+            <li>
+              <a href="data" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-database w-6"></i>
+                <span>Climate Data Portal</span>
+              </a>
+            </li>
+            <li>
+              <a href="pricing.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-calculator w-6"></i>
+                <span>Index Pricing</span>
+              </a>
+            </li>
+            <li>
+              <div class="sidebar-nav-item coming-soon-item flex items-center px-4 py-3 text-white justify-between"
+                data-coming-soon="crop-signature">
+                <div class="flex items-center">
+                  <i class="fas fa-brain w-6"></i>
+                  <span>Crop Signature</span>
+                </div>
+                <span class="coming-soon-badge">Soon</span>
+              </div>
+            </li>
+            <li>
+              <a href="alerts.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-bell w-6"></i>
+                <span>Alerts</span>
+              </a>
+            </li>
+            <li>
+              <a href="settings.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                <i class="fas fa-cog w-6"></i>
+                <span>Settings</span>
+              </a>
+            </li>
+          </ul>
+
+          <!-- Admin Menu -->
+          <div id="adminMenu" class="pt-4 mt-4 border-t border-secondary-light">
+            <h3 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Administration</h3>
+            <ul class="mt-2">
+              <li>
+                <a href="https://yieldera.co.zw/admin/users.html"
+                  class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                  <i class="fas fa-users w-6"></i>
+                  <span>Manage Users</span>
+                </a>
+              </li>
+              <li>
+                <a href="../dashboard/audit.html" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                  <i class="fas fa-shield-alt w-6"></i>
+                  <span>Access Control</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                  <i class="fas fa-briefcase w-6"></i>
+                  <span>Manage Entities</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="sidebar-nav-item flex items-center px-4 py-3 text-white">
+                  <i class="fas fa-seedling w-6"></i>
+                  <span>Manage Crops</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- User Info -->
+        <div class="p-4 border-t border-secondary-light">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center min-w-0 flex-1">
+              <div id="userAvatar"
+                class="w-10 h-10 rounded-full bg-primary text-secondary flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0">
+                KM
+              </div>
+              <div class="min-w-0 flex-1">
+                <div id="userName" class="text-sm font-medium text-white truncate">Kudzai Munyukwa</div>
+                <div id="userEntity" class="text-xs text-gray-400 mt-1 truncate">Old Mutual</div>
+              </div>
+            </div>
+            <button id="logout-link"
+              class="ml-3 p-2 text-gray-400 hover:text-primary hover:bg-secondary-light rounded-lg transition-colors duration-200 flex-shrink-0"
+              title="Logout">
+              <i class="fas fa-sign-out-alt text-sm"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full overflow-y-auto bg-gray-100 dark:bg-dark-bg p-4 md:p-8">
+
+      <!-- Visualization Module Container -->
+      <div
+        class="visualization-module-container w-full min-h-full bg-white dark:bg-secondary rounded-xl shadow-lg flex flex-col">
+
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-secondary text-white flex-shrink-0">
+          <div class="flex items-center">
+            <div class="p-3 bg-white/10 rounded-lg mr-4">
+              <i class="fas fa-satellite text-2xl text-primary"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold">Weather Risk Map</h3>
+              <p class="text-sm opacity-80">Generate professional drought risk maps using real-time satellite data</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 flex-1">
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+            <!-- Controls Column -->
+            <div class="viz-controls lg:col-span-1 space-y-6 overflow-y-auto pr-2">
+
+              <!-- Region Selection -->
+              <div class="control-group">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Analysis Region</label>
+                <select id="regionCategory"
+                  class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm dark:text-white">
+                  <option value="">Select Category</option>
+                  <option value="country">Zimbabwe (Complete)</option>
+                  <option value="province">Zimbabwe Provinces</option>
+                  <option value="district">Zimbabwe Districts</option>
+                  <option value="country">Southern Africa Countries</option>
+                </select>
+              </div>
+
+              <div class="control-group" id="specificRegionGroup" style="display:none;">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Specific Region</label>
+                <select id="specificRegion"
+                  class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm dark:text-white">
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+
+              <!-- Analysis Period -->
+              <div class="control-group">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Analysis Period</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="date" id="analysisStart"
+                    class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm dark:text-white focus:ring-primary">
+                  <input type="date" id="analysisEnd"
+                    class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm dark:text-white focus:ring-primary">
+                </div>
+              </div>
+
+              <!-- Baseline Period -->
+              <div class="control-group">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baseline Period</label>
+                <select id="baselinePeriod"
+                  class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 outline-none text-sm dark:text-white">
+                  <option value="same-period">Same period (2015-2024)</option>
+                  <option value="custom">Custom baseline period</option>
+                </select>
+              </div>
+
+              <div id="customBaselineGroup" style="display:none;" class="mt-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="date" id="baselineStart"
+                    class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm dark:text-white">
+                  <input type="date" id="baselineEnd"
+                    class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm dark:text-white">
+                </div>
+              </div>
+
+              <!-- Analysis Type -->
+              <div class="control-group">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Analysis Type</label>
+                <select id="analysisType"
+                  class="w-full bg-gray-50 dark:bg-secondary-light border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 outline-none text-sm dark:text-white">
+                  <option value="anomaly">Soil Moisture Anomaly</option>
+                  <option value="percentage">Percentage Change</option>
+                  <option value="risk">Risk Classification</option>
+                </select>
+              </div>
+
+              <!-- Generate Button -->
+              <button id="generateVisualization"
+                class="w-full bg-primary hover:bg-primary-light text-secondary font-bold py-3 px-6 rounded-lg shadow transition transform active:scale-95 flex justify-center items-center">
+                <span class="mr-2">🚀</span>
+                Generate Analysis
+              </button>
+
+              <!-- Status/Error Panel -->
+              <div id="progressPanel"
+                class="hidden mt-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                <div class="flex items-center mb-2">
+                  <div
+                    class="spinner w-5 h-5 mr-3 border-2 border-primary border-t-transparent rounded-full animate-spin">
+                  </div>
+                  <span class="text-sm font-medium text-blue-800 dark:text-blue-200 progress-message">Starting...</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                  <div class="progress-bar-fill bg-primary h-1.5 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div id="errorPanel"
+                class="hidden mt-4 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-100 dark:border-red-800 text-sm text-red-600 dark:text-red-300">
+              </div>
+
+            </div>
+
+            <!-- Results Sidebar (Placeholder) -->
+            <div class="results-column lg:col-span-3 flex flex-col h-full">
+              <!-- Persistent Empty State / Placeholder -->
+              <div id="vizPlaceholder"
+                class="h-full flex flex-col items-center justify-center p-12 text-center text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-secondary-light/50">
+                <i class="fas fa-satellite-dish w-16 h-16 mb-4 opacity-30 animate-pulse"></i>
+                <h4 class="text-xl font-medium mb-2">Ready to Analyze</h4>
+                <p class="max-w-md opacity-70">
+                  Configure your parameters on the left and click "Generate Analysis" to view the full-screen report.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Full Screen Result Modal -->
+  <div id="resultModal" class="fixed inset-0 z-50 forbidden hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black bg-opacity-80 transition-opacity backdrop-blur-sm" id="modalBackdrop"></div>
+
+    <!-- Modal Content -->
+    <div class="fixed inset-0 z-10 overflow-y-auto w-full h-full p-4 md:p-6 flex items-center justify-center">
+      <!-- Close Button (Top Right Fixed) -->
+      <button id="closeModalBtn"
+        class="fixed top-6 right-6 z-50 text-white hover:text-gray-300 focus:outline-none transition-colors">
+        <i class="fas fa-times text-4xl shadow-lg"></i>
+      </button>
+
+      <!-- Card Container -->
+      <div
+        class="bg-white dark:bg-secondary w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden transform transition-all relative flex flex-col max-h-full">
+
+        <!-- Modal Header -->
+        <div
+          class="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-secondary-dark/50">
+          <div>
+            <h3 class="text-2xl font-bold dark:text-white flex items-center">
+              <i class="fas fa-satellite text-primary mr-3"></i>
+              Analysis Results
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Generated Satellite Risk Assessment</p>
+          </div>
+          <!-- Download Action (Placeholder for specific button if needed in header) -->
+        </div>
+
+        <!-- Scrollable Body -->
+        <div id="resultModalContent" class="p-6 md:p-8 overflow-y-auto flex-1 bg-gray-100 dark:bg-secondary-light/30">
+          <!-- Dynamic Content Injected Here -->
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification System -->
+  <div id="notificationContainer" class="fixed bottom-4 right-4 z-[9999] flex flex-col"></div>
+
+  <!-- External JavaScript Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Modular JavaScript -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/mobile-detect.js"></script>
+  <script src="js/map-manager.js"></script>
+  <!-- field-manager.js and others removed as not needed for this view -->
+
+  <script src="js/visualization-module.js?v=9.1"></script>
+  <script src="js/navigation-highlight.js"></script>
+
+</body>
+
+</html>

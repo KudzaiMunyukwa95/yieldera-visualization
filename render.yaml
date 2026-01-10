@@ -1,0 +1,117 @@
+# Render deployment configuration for Yieldera Visualization System
+# Optimized for production deployment with PostgreSQL and Redis
+
+services:
+  # Backend API Service
+  - type: web
+    name: yieldera-viz-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt && python -m backend.scripts.pre_cache_map_data"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /api/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yieldera-viz-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: yieldera-viz-redis
+          property: connectionString
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false  # Set this manually in Render dashboard
+      - key: VISUALIZATION_STORAGE_PATH
+        value: /tmp/visualizations
+      - key: CARTOPY_USER_DATADIR
+        value: /opt/render/project/src/backend/data/cartopy_cache
+      - key: CARTOPY_DATA_DIR
+        value: /opt/render/project/src/backend/data/cartopy_cache
+      - key: MAX_WORKERS
+        value: 2
+      - key: RATE_LIMIT_PER_MINUTE
+        value: 60
+      - key: CLEANUP_DAYS
+        value: 7
+      # Optional AWS S3 settings
+      - key: AWS_ACCESS_KEY_ID
+        sync: false  # Set manually if using S3
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false  # Set manually if using S3
+      - key: AWS_S3_BUCKET
+        value: yieldera-visualizations
+      - key: AWS_REGION
+        value: us-east-1
+
+  # Celery Worker Service
+  - type: worker
+    name: yieldera-viz-worker
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt && python -m backend.scripts.pre_cache_map_data"
+    startCommand: "celery -A backend.celery_app worker --loglevel=info --concurrency=1"
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yieldera-viz-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: yieldera-viz-redis
+          property: connectionString
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false
+      - key: VISUALIZATION_STORAGE_PATH
+        value: /tmp/visualizations
+      - key: CARTOPY_USER_DATADIR
+        value: /opt/render/project/src/backend/data/cartopy_cache
+      - key: CARTOPY_DATA_DIR
+        value: /opt/render/project/src/backend/data/cartopy_cache
+      - key: WORKER_CONCURRENCY
+        value: 1
+      - key: MAX_WORKERS
+        value: 1
+
+  # Frontend Static Site
+  - type: web
+    name: yieldera-viz-frontend
+    env: static
+    buildCommand: "" # No build command needed for static HTML
+    staticPublishPath: dash
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://yieldera-viz-api.onrender.com/api/* # Rewrite API requests to backend
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+
+  # Redis Service
+  - type: redis
+    name: yieldera-viz-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: [] # Internal access only
+
+# Database
+databases:
+  - name: yieldera-viz-db
+    databaseName: yieldera_visualization
+    user: yieldera_user
+    region: oregon
+    plan: free
